@@ -1,0 +1,66 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="height: 100vh;">
+        <div class="col-md-6 col-lg-5">
+            <div class="card p-4 shadow">
+                <h2 class="text-center mb-4" style="font-size: 32px; color: #FF66B2; font-weight: bold;">Glow & Glam</h2>
+
+                <!-- Verification Form -->
+                <form id="verifyForm" method="POST">
+                    {% csrf_token %}
+                    
+                     {% if messages %}
+                        <div class="form-group mt-3">
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                            {% endfor %}
+                          </div>
+                     {% endif %}
+                    <div class="form-group">
+                        <label for="verification_code">Verification Code</label>
+                        <input type="text" class="form-control" id="verification_code" name="verification_code" required placeholder="Enter 6-digit code">
+                    </div>
+
+                    <button type="submit" class="btn btn-success d-block mt-3 mx-auto">Verify Code</button>
+
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'store:resend_verification_code' %}">Resend verification code</a>
+                    </div>
+
+                    <div id="error_message" class="mt-2 text-danger" style="display:none;"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('verifyForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const verification_code = document.getElementById('verification_code').value;
+    const errorDiv = document.getElementById('error_message');
+
+    fetch("{% url 'store:verify_code' %}", {
+        method: "POST",
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            verification_code: verification_code,
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = "{% url 'store:home' %}";
+        } else {
+            errorDiv.innerText = data.error || 'Invalid verification code.';
+            errorDiv.style.display = 'block';
+        }
+    });
+});
+</script>
+{% endblock %}

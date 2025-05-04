@@ -1,0 +1,166 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row">
+        <!-- 🧩 Filter Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h4 class="mb-4 text-pink">Filter</h4>
+                    <form method="get" id="filterForm">
+
+                        <!-- ✅ Brand Checkbox Filters -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Brand</label>
+                            {% for brand in brands %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="brand" value="{{ brand }}" id="brand_{{ forloop.counter }}"
+                                       {% if brand in selected_brands %}checked{% endif %}>
+                                <label class="form-check-label" for="brand_{{ forloop.counter }}">{{ brand }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- ✅ Price Slider -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold">Price Range</h6>
+                            <small>Select Price Range</small>
+                            <div id="priceSlider" class="my-4"></div>
+                            <p><strong>NPR. <span id="minPriceValue">0</span> - NPR. <span id="maxPriceValue">20000</span></strong></p>
+
+                            <!-- Hidden Inputs for Filtering -->
+                            <input type="hidden" id="min_price" name="min_price" value="0">
+                            <input type="hidden" id="max_price" name="max_price" value="20000">
+                        </div>
+
+                        <!-- ✅ Filter Submit Button -->
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-danger w-100">Apply Filters</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 💎 Product Grid Section -->
+        <div class="col-md-9">
+            <h3 class="text-pink mb-3">Category</h3>
+            <h2 class="mb-5">{{category_name }}</h2>
+
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                {% for product in products %}
+                <div class="col">
+                    <a href="{% url 'store:product_detail' product.id %}" class="text-decoration-none">
+                        <div class="card shadow-sm border-rounded h-70">
+                            <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'store/images/default.png' %}{% endif %}" 
+                                 class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                            <div class="card-body d-flex flex-column justify-content-between p-3">
+                                <div class="mb-2">
+                                    <span class="text-warning">★ {{ product.rating|default:"0" }}/5</span>
+                                    <span class="text-muted small">({{ product.total_reviews }} reviews)</span>
+                                </div>
+                                <h5 class="card-title fw-semibold text-dark">{{ product.name }}</h5>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if product.discount_price < product.original_price %}
+                                            <span class="text-muted text-decoration-line-through">Rs. {{ product.original_price }} |</span>
+                                            <span class="fw-bold text-danger">Rs. {{ product.discount_price }}</span>
+                                            <span class="badge bg-success ms-2">-{{ product.discount_percent }}% OFF</span>
+                                        {% else %}
+                                            <span class="fw-bold text-dark">Rs. {{ product.original_price }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <span class="text-warning">★</span> {{ product.rating|default:"0" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+
+                {% if products|length == 0 %}
+                    <p class="text-center">No products found in this category.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/nouislider@15.6.1/dist/nouislider.min.js"></script>
+<script>
+  const priceSlider = document.getElementById('priceSlider');
+
+  noUiSlider.create(priceSlider, {
+    start: [0, 20000],
+    connect: true,
+    range: {
+      'min': 0,
+      'max': 20000
+    },
+    tooltip=false  // Enables tooltips for better user interaction
+    format: {
+      to: function (value) {
+        return Math.round(value);
+      },
+      from: function (value) {
+        return Number(value);
+      }
+    }
+  });
+
+  const minInput = document.getElementById('min_price');
+  const maxInput = document.getElementById('max_price');
+  const minDisplay = document.getElementById('minPriceValue');
+  const maxDisplay = document.getElementById('maxPriceValue');
+
+  priceSlider.noUiSlider.on('update', function (values, handle) {
+    const min = Math.round(values[0]);
+    const max = Math.round(values[1]);
+
+    minInput.value = min;
+    maxInput.value = max;
+    minDisplay.textContent = min;
+    maxDisplay.textContent = max;
+  });
+</script>
+
+<style>
+    /* Customize track and handle */
+    .noUi-connect {
+      background: #f78bc7 !important; /* Pink */
+    }
+  
+    .noUi-handle {
+      border: none;
+      background-color: #f24b9b !important; /* Bright pink handle */
+      box-shadow: none;
+      width: 13px;  /* Adjust width */
+      height: 13px; /* Adjust height */
+      border-radius: 50%;
+      cursor: grab;
+      top:-7px;
+    }
+    
+    .noUi-target {
+      border: none;
+      height: 7px;
+      background: #fcd6e8; /* Light pink base */
+      border-radius: 8px;
+    }
+
+    /* Hover effect on product cards */
+    .card-body {
+      transition: all 0.3s ease;
+    }
+
+    .card-body:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+{% endblock %}

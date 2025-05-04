@@ -1,0 +1,39 @@
+/* Custom styles for the login page */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #FF66B2;
+    color: white;
+    font-size: 24px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.form-control {
+    height: 45px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.btn-primary {
+    background-color: #FF66B2;
+    border-color: #FF66B2;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #ff3385;
+    border-color: #ff3385;
+}
+
+.text-center a {
+    color: #FF66B2;
+    text-decoration: none;
+}
+
+.text-center a:hover {
+    text-decoration: underline;
+}

@@ -1,0 +1,46 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3>Search Results for "{{ query }}"</h3>
+
+    {% if products %}
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+            {% for product in products %}
+            <a href="{% url 'store:product_detail' product.id %}" class="text-decoration-none text-dark">
+                <div class="card h-100 shadow-sm">
+                    <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'store/images/default.png' %}{% endif %}" 
+                         class="card-img-top" alt="{{ product.name }}" style="height: 300px; object-fit: cover;">
+                    <div class="product-rating p-3">
+                        <span class="text-warning">★ {{ product.average_rating|default:"0" }}/5</span>
+                        <span class="text-muted small">({{ product.total_reviews }} reviews)</span>
+                    </div>                       
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <div class="mt-auto">
+                            {% if product.discount_price < product.original_price %}
+                                <span class="text-muted text-decoration-line-through">Rs. {{ product.original_price }}</span>
+                                <span class="fw-bold text-danger ms-2">Rs. {{ product.discount_price }}</span>
+                                <span class="badge bg-success ms-2">
+                                    -{{ product.discount_percent }}% OFF
+                                </span>
+                            {% else %}
+                                <span class="fw-bold">Rs. {{ product.original_price }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+            
+            <p>No products found matching your search.</p>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No products found matching your search.</p>
+    {% endif %}
+</div>
+{% endblock %}

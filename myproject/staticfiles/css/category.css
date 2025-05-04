@@ -1,0 +1,28 @@
+.noUi-connect {
+  background: #f78bc7 !important;
+}
+
+.noUi-handle {
+  border: none;
+  background-color: #f24b9b !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);  /* soft depth */
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;  /* 50% is enough for a perfect circle */
+  top: -4px;
+  cursor: grab;
+  transition: transform 0.2s ease;
+}
+
+.noUi-handle:hover {
+  transform: scale(1.15);
+}
+
+.noUi-target {
+  border: none;
+  height: 8px;
+  background: #fcd6e8;
+  border-radius: 8px;
+}
+
+

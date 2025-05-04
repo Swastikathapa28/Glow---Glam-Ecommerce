@@ -1,0 +1,239 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Glow & Glam{% endblock %}</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  {% comment %} <script src="{% static 'js/script.js' %}"></script> {% endcomment %}
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  {% block extra_css %}  {% endblock %}
+  
+<style>
+  :root {
+    --primary-pink: #e91e63;
+    --light-pink: #fce4ec;
+    --deep-pink: #ad1457;
+  }
+  
+  body {
+    font-family: 'Open Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #fff8f9;
+  }
+  
+  .wrapper {
+    flex: 1;
+  }
+  
+  .navbar {
+    background: linear-gradient(to right, #fddde6, #ffc4dc);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  
+  .navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: var(--primary-pink);
+  }
+  
+  .navbar-nav .nav-link {
+    color: #444;
+    font-weight: 500;
+    margin-right: 10px;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .navbar-nav .nav-link:hover {
+    color: var(--deep-pink);
+    transform: scale(1.05);
+  }
+  
+  .form-control:focus {
+    border-color: var(--primary-pink);
+    box-shadow: none;
+  }
+  
+  .search-input {
+    border-radius: 30px;
+    background-color: #fff;
+  }
+  
+  /* Why Shop With Us Section */
+  .card-body i {
+    color: #e91e63;
+    transition: color 0.3s ease-in-out;
+  }
+  
+  .card-body i:hover {
+    color: #ad1457;
+  }
+  
+  .card-body h5 {
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+  
+  .card-body p {
+    color: #888;
+  }
+  
+  /* Footer Styling */
+  .footer {
+    background: linear-gradient(135deg,rgb(114, 106, 111),rgb(76, 68, 72));
+    color: white;
+    padding: 3rem 0;
+  }
+  
+  .footer a {
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .footer a:hover {
+    color: #ffd6ec;
+  }
+  
+  .footer .social-icons a {
+    color: white;
+    font-size: 1.5rem;
+    margin: 0 10px;
+  }
+  
+  .footer .social-icons a:hover {
+    color: #ffd6ec;
+  }
+  
+  .footer .footer-links a {
+    margin-right: 15px;
+    font-weight: 500;
+  }
+  
+  .footer-bottom {
+    font-size: 0.9rem;
+    margin-top: 2rem;
+  }
+  
+  .footer-bottom i {
+    color:rgb(233, 135, 205),rgb(243, 121, 208);
+  }
+  </style>
+
+
+</head>
+<body>
+<div class="wrapper">
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'store:home' %}">Glow & Glam</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <!-- Navbar Links -->
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="{% url 'store:home' %}">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'store:about_us' %}">About Us</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'store:order' %}">My Orders</a></li>
+          
+        </ul>
+
+        <!-- Search Input -->
+        <form class="d-flex me-3" method="GET" action="{% url 'store:search_results' %}">
+          <input type="search" name="q" class="form-control search-input" placeholder="Search products..." value="{{ request.GET.q }}">
+        </form>
+
+        <!-- User & Cart -->
+        <ul class="navbar-nav">
+          {% if user.is_authenticated %}
+           <li class="nav-item">
+             <span class="nav-link">Hello, {{ user.get_full_name }}</span>
+           </li>
+   
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'store:logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'store:login' %}"><i class="fas fa-user"></i> Login</a>
+            </li>
+          
+          {% endif %}
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'store:view_cart' %}">
+              <i class="fas fa-shopping-cart"></i> Cart
+              {% if cart_item_count > 0 %}
+              <span class="badge badge-pill badge-danger">
+               {{ cart_item_count }}
+               </span>
+              {% endif %}
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+<!-- Main content -->
+<main class="container my-4">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+  
+  
+
+  <footer class="footer mt-auto">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4 mb-4">
+          <h5>Glow & Glam</h5>
+          <p>Your destination for premium beauty products that enhance your natural glow.</p>
+        </div>
+        <div class="col-lg-2 col-md-6 mb-4">
+          <h6>Quick Links</h6>
+          <ul class="list-unstyled">
+            <li><a href="{% url 'store:home' %}">Home</a></li>
+            <li><a href="{% url 'store:about_us' %}">About Us</a></li>
+            <li><a href="{% url 'store:contact_us' %}">Contact</a></li>
+            <li><a href="{% url 'store:terms_condition' %}">Terms & Conditions</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+          <h6>Customer Service</h6>
+          <ul class="list-unstyled">
+            <li><i class="fas fa-phone-alt me-2"></i>+01-5972681</li>
+            <li><i class="fas fa-envelope me-2"></i>support@glowandglam.com</li>
+            <li><i class="fas fa-map-marker-alt me-2"></i>Nepaltar, Kathmandu</li>
+          </ul>
+        </div>
+        <div class="col-lg-3 mb-4">
+          <h6>Follow Us</h6>
+          <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+          </div>
+        </div>
+      </div>
+      <hr class="bg-white">
+      <div class="text-center">
+        &copy; 2025 Glow & Glam. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
