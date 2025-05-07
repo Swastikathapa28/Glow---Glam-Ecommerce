@@ -19,8 +19,8 @@ urlpatterns = [
     path('cart/update/<int:cart_item_id>/', views.update_cart_item, name='update_cart_item'),
     path('profile/',views.profile,name='profile'),
     path('checkout/', views.checkout, name='checkout'),
-    path('checkout/process/', views.process_checkout, name='process_checkout'),
-    path('order/<int:order_id>/', views.order_confirmation, name='order_confirmation'),
+    path('order_success/', views.order_success, name='order_success'),
+    
     path('search/', views.search_results, name='search_results'), 
     path('order/', views.order, name='order'),
     path('about_us/', views.about_us, name='about_us'),
@@ -31,5 +31,6 @@ urlpatterns = [
     path('reset_password/<uidb64>/<token>/', views.reset_password, name='reset_password'),
     path('edit_review/<int:review_id>/',views.edit_review,name='edit_review'),
     path('delete_review/<int:review_id>/',views.delete_review,name='delete_review'),
+    path('concern/<str:concern>/', views.shop_by_concern, name='shop_by_concern'),
 ]
 

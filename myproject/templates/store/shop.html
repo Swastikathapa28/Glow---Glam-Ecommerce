@@ -1,0 +1,79 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Shop Section -->
+<section class="shop py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Shop Our Products</h2>
+        
+        <!-- Filter and Sort Bar -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <form method="GET" action="{% url 'store:shop' %}">
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" name="category" id="category">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" {% if category.id == request.GET.category %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price Range</label>
+                        <input type="range" class="form-range" min="0" max="1000" step="10" id="price" name="price" value="{{ request.GET.price|default:1000 }}">
+                        <div>Up to: Rs. {{ request.GET.price|default:1000 }}</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </form>
+            </div>
+            <div class="col-md-8 d-flex justify-content-end">
+                <form method="GET" action="{% url 'store:shop' %}">
+                    <div class="mb-3">
+                        <label for="sort" class="form-label">Sort By</label>
+                        <select class="form-select" name="sort" id="sort">
+                            <option value="">Default</option>
+                            <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                            <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                            <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Newest</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Sort</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+            {% for product in products %}
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'store/images/default.png' %}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">Rs. {{ product.discount_price if product.discount_price else product.original_price }}</p>
+                            <a href="{% url 'store:product_detail' product.id %}" class="btn btn-primary">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p>No products found.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination mt-4">
+            {% if products.has_previous %}
+                <a class="btn btn-link" href="?page=1&category={{ request.GET.category }}&price={{ request.GET.price }}&sort={{ request.GET.sort }}">First</a>
+                <a class="btn btn-link" href="?page={{ products.previous_page_number }}&category={{ request.GET.category }}&price={{ request.GET.price }}&sort={{ request.GET.sort }}">Previous</a>
+            {% endif %}
+            <span class="current-page">Page {{ products.number }} of {{ products.paginator.num_pages }}</span>
+            {% if products.has_next %}
+                <a class="btn btn-link" href="?page={{ products.next_page_number }}&category={{ request.GET.category }}&price={{ request.GET.price }}&sort={{ request.GET.sort }}">Next</a>
+                <a class="btn btn-link" href="?page={{ products.paginator.num_pages }}&category={{ request.GET.category }}&price={{ request.GET.price }}&sort={{ request.GET.sort }}">Last</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

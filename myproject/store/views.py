@@ -42,9 +42,13 @@ CATEGORIES = [
 
 def homepage(request):
     products = Product.objects.all()
+    brands = Product.objects.values_list('brand', flat=True).distinct()
+
+    
     return render(request, 'store/homepage.html', {
         'products': products,
-        'categories': CATEGORIES
+        'categories': CATEGORIES,
+        'brands':brands
     })
 
 
@@ -369,56 +373,47 @@ def profile(request):
     """Display user profile"""
     return render(request, 'store/profile.html', {"user": request.user})
 
+@login_required
 def checkout(request):
-    cart_total = 5000  # Example value
-    cart_discount = 1000  # Example discount
-    return render(request, 'store/checkout.html', {
-        'cart_total': cart_total,
-        'cart_discount': cart_discount
-    })
-def order_confirmation(request):
-    # Your logic for order confirmation
-    return render(request, 'order_confirmation.html')
-def process_checkout(request):
+    cart = Cart(request)
+
     if request.method == 'POST':
-        # Get form data
+        # Get user information from form data
         full_name = request.POST.get('full_name')
-        phone = request.POST.get('phone')
+        email = request.POST.get('email')
         address = request.POST.get('address')
-        location_type = request.POST.get('location_type')
-        payment_method = request.POST.get('payment_method')
-        
-        # Calculate shipping cost
-        shipping_cost = 100 if location_type == 'inside' else 200
-        
-        # Create order
+        phone_number = request.POST.get('phone_number')
+
+        # Create the order
         order = Order.objects.create(
             user=request.user,
             full_name=full_name,
-            phone=phone,
+            email=email,
             address=address,
-            location_type=location_type,
-            payment_method=payment_method,
-            shipping_cost=shipping_cost,
-            total_amount=cart_total + shipping_cost
+            phone_number=phone_number,
+            total_price=cart.get_total_price(),
         )
-        
-        # Add cart items to order
-        for item in cart_items:
+
+        # Create order items from cart
+        for item in cart.cart.values():
             OrderItem.objects.create(
                 order=order,
-                product=item.product,
-                quantity=item.quantity,
-                price=item.product.discount_price or item.product.original_price
+                product=item['product'],
+                quantity=item['quantity'],
+                price=item['price']
             )
-        
-        # Process payment based on method
-        if payment_method == 'esewa':
-            return redirect_to_esewa_payment(order)
-        elif payment_method == 'credit_card':
-            return process_credit_card_payment(order)
-        else:  # Cash on delivery
-            return redirect('order_confirmation', order_id=order.id)
+
+        # Clear the cart after successful order placement
+        cart.clear()
+
+        messages.success(request, 'Your order has been placed successfully!')
+        return redirect('order_success')  # Redirect to the success page
+
+    return render(request, 'store/checkout.html', {'cart': cart})
+
+@login_required
+def order_success(request):
+    return render(request, 'store/order_success.html')
 
 def search_results(request):
     query = request.GET.get('q', '')  # Get search query
@@ -583,3 +578,17 @@ def reset_password(request, uidb64, token):
         logger.error(f"Error resetting password: {e}")
         messages.error(request, 'Something went wrong. Please try again.')
         return redirect('store:forgot_password')
+
+
+def shop_by_concern(request, concern):
+    concern = concern.lower()
+    products = Product.objects.all()
+    filtered_products = [
+        product for product in products
+        if concern in [c.strip().lower() for c in product.best_for.split(',')]
+    ]
+    
+    return render(request, 'store/shop_by_concern.html', {
+        'concern': concern,
+        'products': filtered_products,
+    })

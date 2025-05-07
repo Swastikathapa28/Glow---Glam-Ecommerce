@@ -30,7 +30,7 @@ class Product(models.Model):
     average_rating = models.DecimalField(max_digits=2, decimal_places=1, default=0, editable=False)
     brand=models.CharField(max_length=20,default='')
     quantity = models.IntegerField(default=0)
-
+    best_for=models.CharField(max_length=15,default="all")
 
     def update_average_rating(self, save=False):
         avg_rating = self.reviews.aggregate(Avg('rating'))['rating__avg']

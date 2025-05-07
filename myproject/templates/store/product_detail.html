@@ -1,106 +1,231 @@
 {% extends 'store/base.html' %}
 {% load static %}
+
+{% block title %}{{ product.name }} - Glow & Glam{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-pink: #FFD6E0;
+        --secondary-pink: #D8A1B8;
+        --dark-pink: #B76E8E;
+        --cream: #FFF9F5;
+        --charcoal: #333333;
+        --gold: #E8C3A2;
+    }
+    
+    .product-image {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .product-image:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+    
+    .product-title {
+        color: var(--dark-pink);
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .price-section {
+        background-color: var(--cream);
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 1.5rem 0;
+    }
+    
+    .original-price {
+        text-decoration: line-through;
+        color: #999;
+    }
+    
+    .discount-price {
+        color: var(--dark-pink);
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .discount-badge {
+        background-color: var(--gold);
+        color: white;
+    }
+    
+    .quantity-selector {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+    }
+    
+    .quantity-btn {
+        background-color: var(--primary-pink);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 1.2rem;
+        color: var(--dark-pink);
+    }
+    
+    .quantity-input {
+        width: 60px;
+        text-align: center;
+        margin: 0 10px;
+        border: 1px solid var(--primary-pink);
+        border-radius: 5px;
+        padding: 0.5rem;
+    }
+    
+    .add-to-cart-btn {
+        background-color: var(--dark-pink);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .add-to-cart-btn:hover {
+        background-color: var(--secondary-pink);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(183, 110, 142, 0.3);
+    }
+    
+    .out-of-stock-btn {
+        background-color: #ccc;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-weight: 600;
+    }
+    
+    .nav-tabs .nav-link {
+        color: var(--charcoal);
+        border: none;
+        padding: 1rem 2rem;
+        font-weight: 600;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: var(--dark-pink);
+        border-bottom: 3px solid var(--dark-pink);
+        background-color: transparent;
+    }
+    
+    .tab-content {
+        border: none;
+        padding: 2rem 0;
+    }
+    
+    .review-card {
+        border-bottom: 1px solid var(--primary-pink);
+        padding: 1.5rem 0;
+    }
+    
+    .star-rating .star {
+        font-size: 1.5rem;
+        color: #e4e5e9;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    
+    .star-rating .star:hover,
+    .star-rating .star.active {
+        color: #ffc107;
+    }
+    
+    .related-product-card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        background: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+    
+    .related-product-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+    
+    .related-product-img {
+        height: 200px;
+        object-fit: cover;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container my-5">
     <div class="row">
         <!-- Product Image -->
-        <div class="col-md-6">
+        <div class="col-lg-6 mb-4">
             <div class="product-image">
-                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid rounded shadow">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid w-100 rounded">
             </div>
         </div>
 
         <!-- Product Details -->
-        <div class="col-md-6">
-            <h1 class="product-title mb-3">{{ product.name }}</h1>
-
+        <div class="col-lg-6">
+            <h1 class="product-title">{{ product.name }}</h1>
+            
+            {% if product.best_for %}
+            <div class="mb-3">
+                <span class="badge rounded-pill" style="background-color: var(--primary-pink); color: var(--dark-pink);">
+                    Best for: {{ product.best_for }}
+                </span>
+            </div>
+            {% endif %}
+            
             <div class="product-rating mb-3">
-                <span class="text-warning">★ {{ product.average_rating|default:"0" }}/5</span>
-                <span class="text-muted small">({{ product.total_reviews }} reviews)</span>
+                <div class="text-warning">
+                    {% with ''|center:product.average_rating|default:"0" as range %}
+                        {% for _ in range %}★{% endfor %}
+                    {% endwith %}
+                    <span class="text-muted small ms-2">({{ product.total_reviews }} reviews)</span>
+                </div>
+            </div>
+
+            <!-- Price Section -->
+            <div class="price-section">
+                {% if product.discount_price < product.original_price %}
+                    <div class="d-flex align-items-center">
+                        <span class="original-price me-2">Rs. {{ product.original_price }}</span>
+                        <span class="discount-price me-2">Rs. {{ product.discount_price }}</span>
+                        <span class="discount-badge badge rounded-pill">
+                            Save {{ product.discount_percent }}%
+                        </span>
+                    </div>
+                {% else %}
+                    <span class="discount-price">Rs. {{ product.original_price }}</span>
+                {% endif %}
             </div>
 
             <!-- Quantity Selector -->
-            <div class="mb-3 d-flex align-items-center pt-5">
-                <label for="quantity" class="form-label fw-bold me-2">Quantity</label>
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="decrease-quantity">-</button>
-                <input type="number" class="form-control mx-1" id="quantity" value="1" min="1" max="{{ product.quantity }}" style="width: 60px;">
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="increase-quantity">+</button>
+            <div class="quantity-selector">
+                <label class="me-3 fw-bold">Quantity:</label>
+                <button class="quantity-btn" type="button" id="decrease-quantity">-</button>
+                <input type="number" class="quantity-input" id="quantity" value="1" min="1" max="{{ product.quantity }}">
+                <button class="quantity-btn" type="button" id="increase-quantity">+</button>
             </div>
 
-            <script>
-                // Quantity increment/decrement buttons
-                document.getElementById('increase-quantity').addEventListener('click', function() {
-                    var quantityInput = document.getElementById('quantity');
-                    if (parseInt(quantityInput.value) < parseInt(quantityInput.max)) {
-                        quantityInput.value = parseInt(quantityInput.value) + 1;
-                    }
-                });
-
-                document.getElementById('decrease-quantity').addEventListener('click', function() {
-                    var quantityInput = document.getElementById('quantity');
-                    if (parseInt(quantityInput.value) > 1) {
-                        quantityInput.value = parseInt(quantityInput.value) - 1;
-                    }
-                });
-            </script>
-
-            <!-- Price Section -->
-            <div class="price-section text-end mb-4">
-                {% if product.discount_price < product.original_price %}
-                    <span class="text-muted text-decoration-line-through">Rs. {{ product.original_price }}</span>
-                    <span class="fw-bold text-danger">Rs. {{ product.discount_price }}</span>
-                    <span class="badge bg-success ms-2">-{{ product.discount_percent }}% OFF</span>
-                {% else %}
-                    <span class="fw-bold">Rs. {{ product.original_price }}</span>
-                {% endif %}
-            </div>
-
-            <div class="text-end pt-3">
+            <div class="d-grid gap-2 d-md-block">
                 {% if product.is_in_stock %}
-                    <button class="btn btn-primary" id="add-to-cart-btn">Add to Cart</button>
+                    <button class="add-to-cart-btn" id="add-to-cart-btn">
+                        <i class="bi bi-cart-plus"></i> Add to Cart
+                    </button>
                 {% else %}
-                    <button class="btn btn-secondary" disabled>Out of Stock</button>
+                    <button class="out-of-stock-btn" disabled>
+                        <i class="bi bi-x-circle"></i> Out of Stock
+                    </button>
                 {% endif %}
             </div>
-
-            <!-- JavaScript -->
-            <script>
-                document.getElementById('add-to-cart-btn').addEventListener('click', function() {
-                    var quantity = document.getElementById('quantity').value;
-                    var productId = "{{ product.id }}";
-                
-                    fetch("{% url 'store:add_to_cart' product.id %}", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": "{{ csrf_token }}"
-                        },
-                        body: JSON.stringify({
-                            'product_id': productId,
-                            'quantity': quantity
-                        })
-                    })
-                    .then(response => {
-                        if (response.status === 302) {  // Check for redirect (login required)
-                            window.location.href = response.url;  // Redirect to the login page
-                        } else {
-                            return response.json();
-                        }
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            alert('Product added to cart');
-                            window.location.href = "{% url 'store:view_cart' %}";
-                        } else {
-                            alert('Error: ' + data.error);
-                        }
-                    })
-                    .catch(error => {
-                        alert('Something went wrong. Please try again.');
-                    });
-                });
-                
-            </script>
         </div>
     </div>
 
@@ -108,193 +233,302 @@
     <ul class="nav nav-tabs mt-5" id="productTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc" type="button" role="tab" aria-controls="desc" aria-selected="true">
-                <i class="bi bi-file-earmark-text"></i> Description
+                Description
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="review-tab" data-bs-toggle="tab" data-bs-target="#review" type="button" role="tab" aria-controls="review" aria-selected="false">
-                <i class="bi bi-chat-left-dots"></i> Rating & Reviews
+                Reviews ({{ product.total_reviews }})
             </button>
         </li>
     </ul>
 
-    <div class="tab-content border p-4 mt-4">
+    <div class="tab-content mt-4">
         <!-- Description Tab -->
         <div class="tab-pane fade show active" id="desc" role="tabpanel" aria-labelledby="desc-tab">
-            <h4 class="fw-bold mb-3">Product Details</h4>
-            <p class="lead">{{ product.description }}</p>
+            <div class="p-4" style="background-color: var(--cream); border-radius: 15px;">
+                <h4 class="fw-bold mb-4" style="color: var(--dark-pink);">Product Details</h4>
+                <p class="lead">{{ product.description }}</p>
+                
+                {% if product.ingredients %}
+                <div class="mt-4">
+                    <h5 class="fw-bold">Key Ingredients</h5>
+                    <p>{{ product.ingredients }}</p>
+                </div>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Review Tab -->
         <div class="tab-pane fade" id="review" role="tabpanel" aria-labelledby="review-tab">
-            <div class="reviews-section">
-                <h4 class="fw-bold mb-3">Customer Reviews</h4>
+            <div class="reviews-section p-4" style="background-color: var(--cream); border-radius: 15px;">
+                <h4 class="fw-bold mb-4" style="color: var(--dark-pink);">Customer Reviews</h4>
 
                 <!-- Display Reviews -->
                 {% for review in product.reviews.all %}
-                    <div class="border-bottom mb-3 pb-2" id="review-{{ review.id }}">
-                        <p>
-                            <button class="btn-pink border rounded btn-info btn-sm" type="button">{{ review.rating }}⭐</button>
-                            <strong>{{ review.user.full_name }}</strong>
-                            <small class="text-muted">({{ review.created_at|date:"F j, Y" }})</small>
+                    <div class="review-card" id="review-{{ review.id }}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="text-warning me-2">
+                                        {% with ''|center:review.rating as range %}
+                                            {% for _ in range %}★{% endfor %}
+                                        {% endwith %}
+                                    </div>
+                                    <strong>{{ review.user.full_name }}</strong>
+                                    <small class="text-muted ms-2">{{ review.created_at|date:"F j, Y" }}</small>
+                                </div>
+                                <p class="mb-0">{{ review.review_text }}</p>
+                            </div>
                             {% if review.user == request.user %}
-                            <button class="btn border rounded btn-sm btn-warning edit-review-btn p-1 m-1" style=" height: 30px;" data-review-id="{{ review.id }}">Edit</button>
-                            <a href="{% url 'store:delete_review' review.id %}" class="btn border none btn-sm btn-warning p-1 m-1" style="height: 30px; ">Delete</a>
+                            <div class="d-flex">
+                                <button class="btn btn-sm btn-outline-secondary edit-review-btn" data-review-id="{{ review.id }}">
+                                    Edit
+                                </button>
+                                <a href="{% url 'store:delete_review' review.id %}" class="btn btn-sm btn-outline-danger ms-2">
+                                    Delete
+                                </a>
+                            </div>
                             {% endif %}
-                        </p>
-                        <p>{{ review.review_text }}</p>
-                        <div class="rating text-warning">
-                            {% for i in "12345" %}
-                                {% if i|add:0 <= review.rating %}
-                                    <i class="bi bi-star-fill"></i>
-                                {% else %}
-                                    <i class="bi bi-star"></i>
-                                {% endif %}
-                            {% endfor %}
                         </div>
 
                         <!-- Edit Review Form (Hidden by Default) -->
-                        <div id="edit-form-{{ review.id }}" class="edit-review-form" style="display: none;">
-                            <form method="POST" action="{% url 'store:edit_review' review.id %}" class="mt-3">
+                        <div id="edit-form-{{ review.id }}" class="edit-review-form mt-3" style="display: none;">
+                            <form method="POST" action="{% url 'store:edit_review' review.id %}">
                                 {% csrf_token %}
                                 <div class="mb-3">
                                     <label for="edit-review-content-{{ review.id }}" class="form-label">Your Review</label>
-                                    <textarea id="edit-review-content-{{ review.id }}" name="review_text" class="form-control" rows="4" required>{{ review.review_text }}</textarea>
+                                    <textarea id="edit-review-content-{{ review.id }}" name="review_text" class="form-control" rows="3" required>{{ review.review_text }}</textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Rating</label>
                                     <div class="star-rating">
                                         {% for i in "12345" %}
-                                            <span class="star ml-2" style="color: white; size : 20px;" data-value="{{ i }}">&#9733;</span>
+                                            <span class="star {% if i|add:0 <= review.rating %}active{% endif %}" data-value="{{ i }}">★</span>
                                         {% endfor %}
                                         <input type="hidden" name="rating" id="edit-rating-input-{{ review.id }}" value="{{ review.rating }}" required>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-success">Update Review</button>
-                                <button type="button" class="btn btn-secondary cancel-edit-btn" data-review-id="{{ review.id }}">Cancel</button>
+                                <div class="d-flex">
+                                    <button type="submit" class="btn btn-pink me-2">Update</button>
+                                    <button type="button" class="btn btn-outline-secondary cancel-edit-btn" data-review-id="{{ review.id }}">Cancel</button>
+                                </div>
                             </form>
                         </div>
                     </div>
                 {% empty %}
-                    <p>No reviews yet. Be the first to review this product!</p>
+                    <div class="text-center py-4">
+                        <p>No reviews yet. Be the first to review this product!</p>
+                    </div>
                 {% endfor %}
 
                 <!-- Add Review Form -->
-                <h5 class="mt-4">Add a Review</h5>
-                <form method="POST" action="{% url 'store:add_review' product.id %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="review-content" class="form-label">Your Review</label>
-                        <textarea id="review-content" name="review_text" class="form-control" rows="4" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Rating</label>
-                        <div class="star-rating">
-                            {% for i in "12345" %}
-                                <span class="star ml-2" data-value="{{ i }}">&#9733;</span>
-                            {% endfor %}
-                            <input type="hidden" name="rating" id="rating-input" value="0" required>
+                {% if user.is_authenticated %}
+                <div class="mt-5">
+                    <h5 class="mb-3">Write a Review</h5>
+                    <form method="POST" action="{% url 'store:add_review' product.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            <div class="star-rating mb-2">
+                                {% for i in "12345" %}
+                                    <span class="star" data-value="{{ i }}">★</span>
+                                {% endfor %}
+                                <input type="hidden" name="rating" id="rating-input" value="0" required>
+                            </div>
                         </div>
-                    </div>
-                    <button type="submit" class="btn btn-success">Submit Review</button>
-                </form>
+                        <div class="mb-3">
+                            <label for="review-content" class="form-label">Your Review</label>
+                            <textarea id="review-content" name="review_text" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-pink">Submit Review</button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="alert alert-info mt-4">
+                    Please <a href="{% url 'store:login' %}">login</a> to leave a review.
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <section class="mt-5">
+        <h3 class="mb-4" style="color: var(--dark-pink);">You May Also Like</h3>
+        <div class="row">
+            {% for related_product in related_products %}
+            <div class="col-md-3 mb-4">
+                <a href="{% url 'store:product_detail' related_product.id %}" class="text-decoration-none">
+                    <div class="related-product-card h-100">
+                        <div class="position-relative">
+                            <img src="{% if related_product.image %}{{ related_product.image.url }}{% else %}{% static 'store/images/default.png' %}{% endif %}" 
+                                 class="related-product-img w-100" alt="{{ related_product.name }}">
+                            {% if related_product.is_bestseller %}
+                            <span class="position-absolute top-0 end-0 m-2 badge bg-warning text-dark">Bestseller</span>
+                            {% endif %}
+                        </div>
+                        <div class="p-3">
+                            <h5 class="product-title">{{ related_product.name|truncatechars:30 }}</h5>
+                            <div class="mb-2">
+                                <span class="text-warning">
+                                    {% with ''|center:related_product.average_rating|default:"0" as range %}
+                                        {% for _ in range %}★{% endfor %}
+                                    {% endwith %}
+                                </span>
+                                <small class="text-muted">({{ related_product.total_reviews }})</small>
+                            </div>
+                            <div>
+                                {% if related_product.discount_price < related_product.original_price %}
+                                    <span class="original-price">Rs. {{ related_product.original_price }}</span>
+                                    <span class="discount-price">Rs. {{ related_product.discount_price }}</span>
+                                {% else %}
+                                    <span class="discount-price">Rs. {{ related_product.original_price }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
 </div>
 
-<!-- JavaScript for Star Rating and Edit Form -->
+<!-- JavaScript -->
 <script>
+    // Quantity Selector
+    document.getElementById('increase-quantity').addEventListener('click', function() {
+        const quantityInput = document.getElementById('quantity');
+        if (parseInt(quantityInput.value) < parseInt(quantityInput.max)) {
+            quantityInput.value = parseInt(quantityInput.value) + 1;
+        }
+    });
+
+    document.getElementById('decrease-quantity').addEventListener('click', function() {
+        const quantityInput = document.getElementById('quantity');
+        if (parseInt(quantityInput.value) > 1) {
+            quantityInput.value = parseInt(quantityInput.value) - 1;
+        }
+    });
+
+    // Add to Cart Functionality
+    document.getElementById('add-to-cart-btn')?.addEventListener('click', function() {
+        const quantity = document.getElementById('quantity').value;
+        const productId = "{{ product.id }}";
+        
+        fetch("{% url 'store:add_to_cart' product.id %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                'product_id': productId,
+                'quantity': quantity
+            })
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                return response.json();
+            }
+        })
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const btn = document.getElementById('add-to-cart-btn');
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Added to Cart';
+                btn.classList.add('btn-success');
+                
+                // Update cart count if element exists
+                const cartCount = document.querySelector('.cart-count');
+                if (cartCount) {
+                    let currentCount = parseInt(cartCount.textContent) || 0;
+                    cartCount.textContent = currentCount + parseInt(quantity);
+                    
+                    // Animation for cart count
+                    cartCount.style.transform = 'scale(1.5)';
+                    setTimeout(() => {
+                        cartCount.style.transform = 'scale(1)';
+                    }, 300);
+                }
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="bi bi-cart-plus"></i> Add to Cart';
+                    btn.classList.remove('btn-success');
+                }, 2000);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Something went wrong. Please try again.');
+        });
+    });
+
     // Star Rating for Add Review Form
-    document.querySelectorAll('.star').forEach(star => {
-        star.addEventListener('click', () => {
-            const rating = star.getAttribute('data-value');
-            document.getElementById('rating-input').value = rating;
-            document.querySelectorAll('.star').forEach(s => {
-                if (s.getAttribute('data-value') <= rating) {
-                    s.style.color = '#ffc107'; // Highlight selected stars
+    document.querySelectorAll('#review .star-rating .star').forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = this.getAttribute('data-value');
+            const ratingInput = this.closest('.star-rating').querySelector('input[type="hidden"]');
+            ratingInput.value = rating;
+            
+            // Highlight selected stars
+            this.closest('.star-rating').querySelectorAll('.star').forEach((s, index) => {
+                if (index < rating) {
+                    s.classList.add('active');
                 } else {
-                    s.style.color = '#e4e5e9'; // Reset unselected stars
+                    s.classList.remove('active');
                 }
             });
         });
     });
 
-    // Show/Hide Edit Review Form
+    // Edit Review Functionality
     document.querySelectorAll('.edit-review-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const reviewId = button.getAttribute('data-review-id');
-            const editForm = document.getElementById(`edit-form-${reviewId}`);
-            editForm.style.display = 'block'; // Show the edit form
+        button.addEventListener('click', function() {
+            const reviewId = this.getAttribute('data-review-id');
+            document.getElementById(`edit-form-${reviewId}`).style.display = 'block';
         });
     });
 
-    // Cancel Edit Review Form
     document.querySelectorAll('.cancel-edit-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const reviewId = button.getAttribute('data-review-id');
-            const editForm = document.getElementById(`edit-form-${reviewId}`);
-            editForm.style.display = 'none'; // Hide the edit form
+        button.addEventListener('click', function() {
+            const reviewId = this.getAttribute('data-review-id');
+            document.getElementById(`edit-form-${reviewId}`).style.display = 'none';
         });
     });
 
-    // Star Rating for Edit Review Form
-    document.querySelectorAll('.edit-review-form .star').forEach(star => {
-        star.addEventListener('click', () => {
-            const rating = star.getAttribute('data-value');
-            const reviewId = star.closest('.edit-review-form').id.split('-')[2];
-            document.getElementById(`edit-rating-input-${reviewId}`).value = rating;
-            star.closest('.star-rating').querySelectorAll('.star').forEach(s => {
-                if (s.getAttribute('data-value') <= rating) {
-                    s.style.color = '#ffc107'; // Highlight selected stars
-                } else {
-                    s.style.color = '#e4e5e9'; // Reset unselected stars
-                }
+    // Initialize star ratings for edit forms
+    document.querySelectorAll('.edit-review-form').forEach(form => {
+        const reviewId = form.id.split('-')[2];
+        const currentRating = parseInt(document.getElementById(`edit-rating-input-${reviewId}`).value);
+        
+        form.querySelectorAll('.star').forEach((star, index) => {
+            if (index < currentRating) {
+                star.classList.add('active');
+            }
+            
+            star.addEventListener('click', function() {
+                const newRating = this.getAttribute('data-value');
+                document.getElementById(`edit-rating-input-${reviewId}`).value = newRating;
+                
+                // Highlight selected stars
+                this.closest('.star-rating').querySelectorAll('.star').forEach((s, i) => {
+                    if (i < newRating) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
             });
         });
     });
 </script>
-
-<!-- Related Items Section -->
-<hr>
-<h3 class="mt-5">Related Items</h3>
-<div class="row">
-    {% for related_product in related_products %}
-        <div class="col-md-3 mb-4">
-            <a href="{% url 'store:product_detail' related_product.id %}" class="text-decoration-none text-dark">
-                <div class="card h-100 shadow-sm">
-                    <!-- Product Image -->
-                    <img src="{% if related_product.image %}{{ related_product.image.url }}{% else %}{% static 'store/images/default.png' %}{% endif %}" 
-                         class="card-img-top" alt="{{ related_product.name }}" style="height: 250px; object-fit: cover;">
-                    
-                    <!-- Product Rating -->
-                    <div class="mb-2 p-2">
-                        <span class="text-warning">★ {{ related_product.rating|default:"0" }}/5</span>
-                        <span class="text-muted small">({{ related_product.total_reviews }} reviews)</span>
-                    </div>
-
-                    <!-- Product Details -->
-                    <div class="card-body d-flex flex-column justify-content-between">
-                        <h5 class="card-title">{{ related_product.name }}</h5>
-
-                        <!-- Product Price -->
-                        <div>
-                            {% if related_product.discount_price < related_product.original_price %}
-                                <span class="text-muted text-decoration-line-through">Rs. {{ related_product.original_price }}</span>
-                                <span class="fw-bold text-danger">Rs. {{ related_product.discount_price }}</span>
-                                <span class="badge bg-success ms-2">
-                                    -{{ related_product.discount_percent }}% OFF
-                                </span>
-                            {% else %}
-                                <span class="fw-bold">Rs. {{ related_product.original_price }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-    {% empty %}
-        <p class="text-center">No related items found.</p>
-    {% endfor %}
-</div>
 {% endblock %}

@@ -1,250 +1,56 @@
 {% extends 'store/base.html' %}
-{% load static %}
-{% load cart_tags %}
 
 {% block content %}
-<div class="container my-4">
-    <h2 class="mb-4">Checkout</h2>
-    
-    <div class="row">
-        <!-- Delivery Information -->
-        <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h4 class="mb-0">Delivery Information</h4>
-                </div>
-                <div class="card-body">
-                    <form id="checkout-form" method="POST" action="{% url 'store:process_checkout' %}">
-                        {% csrf_token %}
-                        
-                        <div class="row g-3">
-                            <!-- Full Name -->
-                            <div class="col-md-6">
-                                <label for="full_name" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="full_name" name="full_name" 
-                                       value="{{ request.user.get_full_name|default:'' }}" required>
-                            </div>
-                            
-                            <!-- Phone Number -->
-                            <div class="col-md-6">
-                                <label for="phone" class="form-label">Phone Number</label>
-                                <input type="tel" class="form-control" id="phone" name="phone" 
-                                       pattern="[0-9]{10}" title="10 digit phone number" required>
-                            </div>
-                            
-                            <!-- Delivery Address -->
-                            <div class="col-12">
-                                <label for="address" class="form-label">Delivery Address</label>
-                                <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
-                            </div>
-                            
-                            <!-- Location Type -->
-                            <div class="col-md-6">
-                                <label for="location_type" class="form-label">Location</label>
-                                <select class="form-select" id="location_type" name="location_type" required>
-                                    <option value="">Select Location</option>
-                                    <option value="inside">Inside Kathmandu Valley</option>
-                                    <option value="outside">Outside Kathmandu Valley</option>
-                                </select>
-                            </div>
-                            
-                            <!-- Delivery Instructions -->
-                            <div class="col-md-6">
-                                <label for="instructions" class="form-label">Delivery Instructions (Optional)</label>
-                                <input type="text" class="form-control" id="instructions" name="instructions">
-                            </div>
-                        </div>
-                        
-                        <!-- Payment Method -->
-                        <div class="mt-4">
-                            <h5 class="mb-3">Payment Method</h5>
-                            
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="payment_method" 
-                                       id="cash-on-delivery" value="cash" checked>
-                                <label class="form-check-label" for="cash-on-delivery">
-                                    <i class="bi bi-cash-coin"></i> Cash on Delivery
-                                </label>
-                            </div>
-                            
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="payment_method" 
-                                       id="esewa" value="esewa">
-                                <label class="form-check-label" for="esewa">
-                                    <img src="{% static 'store/images/esewa_logo.png' %}" alt="eSewa" style="height: 20px;">
-                                    eSewa
-                                </label>
-                            </div>
-                            
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="payment_method" 
-                                       id="credit-card" value="credit_card">
-                                <label class="form-check-label" for="credit-card">
-                                    <i class="bi bi-credit-card"></i> Credit/Debit Card
-                                </label>
-                            </div>
-                            
-                            <!-- eSewa Payment Fields (Hidden by default) -->
-                            <div id="esewa-fields" class="mt-3" style="display: none;">
-                                <div class="alert alert-info">
-                                    You will be redirected to eSewa for payment after placing order
-                                </div>
-                            </div>
-                            
-                            <!-- Credit Card Fields (Hidden by default) -->
-                            <div id="credit-card-fields" class="mt-3" style="display: none;">
-                                <div class="row g-3">
-                                    <div class="col-12">
-                                        <label for="card-number" class="form-label">Card Number</label>
-                                        <input type="text" class="form-control" id="card-number" 
-                                               placeholder="1234 5678 9012 3456" name="card_number">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="card-name" class="form-label">Name on Card</label>
-                                        <input type="text" class="form-control" id="card-name" name="card_name">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="card-expiry" class="form-label">Expiry Date</label>
-                                        <input type="text" class="form-control" id="card-expiry" 
-                                               placeholder="MM/YY" name="card_expiry">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="card-cvc" class="form-label">CVC</label>
-                                        <input type="text" class="form-control" id="card-cvc" 
-                                               placeholder="123" name="card_cvc">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<div class="container mt-5">
+    <h2>Checkout</h2>
+    <form method="post">
+        {% csrf_token %}
         
-        <!-- Order Summary -->
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h4 class="mb-0">Your Order</h4>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="full_name" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="full_name" name="full_name" required>
                 </div>
-                <div class="card-body">
-                    <div class="order-items mb-3">
-                        {% for item in cart_items %}
-                        <div class="d-flex justify-content-between mb-2">
-                            <div>
-                                <h6 class="my-0">{{ item.product.name }}</h6>
-                                <small class="text-muted">Qty: {{ item.quantity }}</small>
-                            </div>
-                            <span class="text-muted">Rs. {{ item.product.discount_price|default:item.product.original_price|multiply:item.quantity }}</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    
-                    <hr>
-                    
-                    <div class="d-flex justify-content-between">
-                        <span>Subtotal</span>
-                        <span>Rs. {{ cart_total }}</span>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between">
-                        <span>Shipping</span>
-                        <span id="shipping-cost">Rs. 0</span>
-                    </div>
-                    
-                    {% if cart_discount > 0 %}
-                    <div class="d-flex justify-content-between text-success">
-                        <span>Discount</span>
-                        <span>-Rs. {{ cart_discount }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    <hr>
-                    
-                    <div class="d-flex justify-content-between fw-bold">
-                        <span>Total</span>
-                        <span id="order-total">Rs. {{ cart_total|subtract:cart_discount }}</span>
-                    </div>
-                    
-                    <button type="submit" form="checkout-form" class="btn btn-primary w-100 mt-3 py-2">
-                        Place Order
-                    </button>
-                    
-                    <div class="mt-2 text-center">
-                        <small class="text-muted">
-                            <i class="bi bi-lock-fill"></i> Your information is secure
-                        </small>
-                    </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="address" class="form-label">Shipping Address</label>
+                    <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="phone_number" class="form-label">Phone Number</label>
+                    <input type="text" class="form-control" id="phone_number" name="phone_number" required>
                 </div>
             </div>
+            <div class="col-md-6">
+                <h4>Your Cart</h4>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart.cart.values %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>${{ item.price }}</td>
+                            <td>{{ item.quantity }}</td>
+                            
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <h4>Total: ${{ cart.get_total_price }}</h4>
+            </div>
         </div>
-    </div>
+        <button type="submit" class="btn btn-primary">Place Order</button>
+    </form>
 </div>
-
-<!-- CSS Styles -->
-<style>
-    .form-check-label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .order-items {
-        max-height: 300px;
-        overflow-y: auto;
-    }
-    #esewa-fields img {
-        height: 40px;
-        margin-right: 10px;
-    }
-</style>
-
-<!-- JavaScript -->
-<script>
-    // Update shipping cost based on location
-    document.getElementById('location_type').addEventListener('change', function() {
-        const shippingCost = this.value === 'inside' ? 100 : 200;
-        document.getElementById('shipping-cost').textContent = `Rs. ${shippingCost}`;
-        updateOrderTotal(shippingCost);
-    });
-
-    // Show/hide payment method fields
-    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            document.getElementById('esewa-fields').style.display = 'none';
-            document.getElementById('credit-card-fields').style.display = 'none';
-            
-            if (this.value === 'esewa') {
-                document.getElementById('esewa-fields').style.display = 'block';
-            } else if (this.value === 'credit_card') {
-                document.getElementById('credit-card-fields').style.display = 'block';
-            }
-        });
-    });
-
-    // Format card inputs
-    document.getElementById('card-number').addEventListener('input', function(e) {
-        this.value = this.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
-    });
-
-    document.getElementById('card-expiry').addEventListener('input', function(e) {
-        this.value = this.value.replace(/\D/g, '').replace(/(\d{2})(\d{0,2})/, '$1/$2');
-    });
-
-    // Calculate order total
-    function updateOrderTotal(shippingCost = 0) {
-        const subtotal = parseFloat({{ cart_total|subtract:cart_discount }});
-        const total = subtotal + shippingCost;
-        document.getElementById('order-total').textContent = `Rs. ${total.toFixed(2)}`;
-    }
-
-    // Initialize shipping cost
-    document.addEventListener('DOMContentLoaded', function() {
-        const locationType = document.getElementById('location_type');
-        if (locationType.value) {
-            const shippingCost = locationType.value === 'inside' ? 100 : 200;
-            document.getElementById('shipping-cost').textContent = `Rs. ${shippingCost}`;
-            updateOrderTotal(shippingCost);
-        }
-    });
-</script>
 {% endblock %}
