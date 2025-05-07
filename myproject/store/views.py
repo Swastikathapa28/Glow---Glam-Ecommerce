@@ -26,7 +26,7 @@ from django.contrib import messages
 # Using the custom user model if defined
 User = get_user_model()
 from django.shortcuts import render
-from .models import Product
+from .models import Product,Order,OrderItem
 
 # Define categories manually
 CATEGORIES = [
@@ -581,14 +581,8 @@ def reset_password(request, uidb64, token):
 
 
 def shop_by_concern(request, concern):
-    concern = concern.lower()
-    products = Product.objects.all()
-    filtered_products = [
-        product for product in products
-        if concern in [c.strip().lower() for c in product.best_for.split(',')]
-    ]
-    
-    return render(request, 'store/shop_by_concern.html', {
-        'concern': concern,
-        'products': filtered_products,
+    products = Product.objects.filter(best_for__icontains=concern)
+    return render(request, 'shop/concern_products.html', {
+        'products': products,
+        'concern': concern.capitalize()
     })
