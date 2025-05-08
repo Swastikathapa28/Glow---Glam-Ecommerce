@@ -31,6 +31,7 @@ class Product(models.Model):
     brand=models.CharField(max_length=20,default='')
     quantity = models.IntegerField(default=0)
     best_for=models.CharField(max_length=15,default="all")
+    is_bestseller=models.BooleanField(default=False)
 
     def update_average_rating(self, save=False):
         avg_rating = self.reviews.aggregate(Avg('rating'))['rating__avg']
@@ -46,6 +47,9 @@ class Product(models.Model):
     
     def __str__(self):
         return self.name
+
+    def review_count(self):
+        return self.reviews.count()
 
     @property
     def discount_percent(self):
@@ -110,6 +114,7 @@ class Review(models.Model):
     rating = models.PositiveSmallIntegerField(default=1)  # Rating between 1 to 5
     review_text = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -182,14 +187,3 @@ class Wishlist(models.Model):
     def __str__(self):
         return f"{self.product.name} in {self.user.email}'s wishlist"
 
-
-class ShippingAddress(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    address = models.CharField(max_length=255)
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=20)
-    country = models.CharField(max_length=100)
-
-    def __str__(self):
-        return f"{self.address}, {self.city}, {self.state}, {self.zip_code}, {self.country}"

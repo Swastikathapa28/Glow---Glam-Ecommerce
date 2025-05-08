@@ -43,12 +43,13 @@ CATEGORIES = [
 def homepage(request):
     products = Product.objects.all()
     brands = Product.objects.values_list('brand', flat=True).distinct()
-
+    bestsellers = Product.objects.filter(is_bestseller=True)[:8]
     
     return render(request, 'store/homepage.html', {
         'products': products,
         'categories': CATEGORIES,
-        'brands':brands
+        'brands':brands,
+        'bestsellers':bestsellers
     })
 
 
@@ -582,7 +583,7 @@ def reset_password(request, uidb64, token):
 
 def shop_by_concern(request, concern):
     products = Product.objects.filter(best_for__icontains=concern)
-    return render(request, 'shop/concern_products.html', {
+    return render(request, 'store/concern_product.html', {
         'products': products,
         'concern': concern.capitalize()
     })

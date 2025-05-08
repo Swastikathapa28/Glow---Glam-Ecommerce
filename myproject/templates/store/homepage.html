@@ -320,7 +320,18 @@
                             <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'store/images/default.png' %}{% endif %}" 
                                  alt="{{ product.name }}" class="img-fluid product-img w-100">
                         </a>
-                        <span class="product-badge">Bestseller</span>
+                        {% if product.discount_percent %}
+                        <span class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 fw-bold" 
+                              style="font-size: 0.8rem; border-bottom-right-radius: 5px;">
+                            {{ product.discount_percent }}% OFF
+                        </span>
+                        {% endif %}
+                        
+                        <span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 fw-bold" 
+                              style="font-size: 0.7rem; border-bottom-left-radius: 5px;">
+                            Bestseller
+                        </span>
+                        
                     </div>
                     <div class="p-3">
                         <h5 class="product-title">{{ product.name }}</h5>
@@ -331,16 +342,19 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 {% if product.discount_price %}
-                                    <span class="product-price">${{ product.discount_price }}</span>
-                                    <span class="original-price ms-2">${{ product.price }}</span>
+                                    <span class="product-price">Rs.{{ product.discount_price }}</span>
+                                    <span class="original-price ms-2">Rs{{ product.original_price }}</span>
                                 {% else %}
-                                    <span class="product-price">${{ product.price }}</span>
+                                    <span class="product-price">Rs.{{ product.price }}</span>
                                 {% endif %}
                             </div>
-                            <form action="{% url 'store:add_to_cart' product.id %}" method="post">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-pink">Add to Cart</button>
-                            </form>
+                        
+                                <form action="{% url 'store:add_to_cart' product.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-pink">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </button>
+                                </form>
                         </div>
                     </div>
                 </div>
@@ -392,7 +406,7 @@
         </div>
     </div>
 </section>
-
+{% comment %} 
 <!-- Products You May Like -->
 <section class="py-5 bg-white">
     <div class="container">
@@ -434,6 +448,75 @@
                             <form action="{% url 'store:add_to_cart' product.id %}" method="post">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-pink">Add to Cart</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <h4 class="text-muted">No recommended products available</h4>
+                <p>Check back soon for personalized recommendations!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section> {% endcomment %}
+<!-- Products You May Like -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="section-title mb-5">Products You May Like</h2>
+        <div class="row">
+            {% for product in products %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="product-card">
+                    <div class="position-relative overflow-hidden" style="padding-top: 100%;"> <!-- Square aspect ratio -->
+                        <a href="{% url 'store:product_detail' product.id %}" class="position-absolute top-0 left-0 w-100 h-100">
+                            <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'store/images/default.png' %}{% endif %}" 
+                                 alt="{{ product.name }}" 
+                                 class="img-fluid w-100 h-100 object-fit-cover"> <!-- Fill container -->
+                        </a>
+                        
+                        <!-- Discount badge - top left -->
+                        {% if product.discount_percent %}
+                        <span class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 fw-bold" 
+                              style="font-size: 0.8rem; border-bottom-right-radius: 5px;">
+                            {{ product.discount_percent }}% OFF
+                        </span>
+                        {% endif %}
+                        
+                        <!-- Bestseller badge - top right -->
+                        {% if product.is_bestseller %}
+                        <span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 fw-bold" 
+                              style="font-size: 0.7rem; border-bottom-left-radius: 5px;">
+                            Bestseller
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="p-3">
+                        <h5 class="product-title mb-1">{{ product.name|truncatechars:30 }}</h5>
+                        
+                        <div class="mb-2">
+                            <span class="text-warning">★ {{ product.average_rating|default:"0" }}</span> 
+                            <small>({{ product.review_count }})</small>
+                            
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                {% if product.discount_price %}
+                                    <span class="product-price">Rs.{{ product.discount_price }}</span>
+                                    <span class="original-price ms-2">Rs.{{ product.original_price }}</span>
+                                {% else %}
+                                    <span class="product-price">Rs.{{ product.original_price }}</span>
+                                {% endif %}
+                            </div>
+                            <form action="{% url 'store:add_to_cart' product.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-pink">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
                             </form>
                         </div>
                     </div>

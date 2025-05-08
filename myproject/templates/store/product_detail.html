@@ -238,7 +238,7 @@
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="review-tab" data-bs-toggle="tab" data-bs-target="#review" type="button" role="tab" aria-controls="review" aria-selected="false">
-                Reviews ({{ product.total_reviews }})
+                Reviews
             </button>
         </li>
     </ul>
@@ -387,10 +387,12 @@
                                     <span class="discount-price">Rs. {{ related_product.original_price }}</span>
                                 {% endif %}
                             </div>
+    
                         </div>
                     </div>
                 </a>
-            </div>
+            </a>
+        
             {% endfor %}
         </div>
     </section>
