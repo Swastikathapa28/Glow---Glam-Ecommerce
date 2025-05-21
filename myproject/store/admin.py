@@ -10,7 +10,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'original_price', 'discount_price', 'image','quantity', 'rating', 'total_reviews')  # shows these columns in admin list view
     search_fields = ('name',)                        # adds a search box for 'name'
     list_filter = ('original_price',)                         # adds a filter sidebar for 'price'
-    list_editable = ('original_price','image', 'quantity') 
+    list_editable = ('original_price','image', 'quantity','name') 
     def rating(self, obj):
         # Calculate the average rating for this product based on reviews
         reviews = Review.objects.filter(product=obj)
@@ -75,3 +75,4 @@ class CartItemAdmin(admin.ModelAdmin):
 @admin.register(Category)
 class Category(admin.ModelAdmin):
     list_display = ('name','slug')
+

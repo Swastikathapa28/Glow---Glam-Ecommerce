@@ -2,34 +2,55 @@
 
 {% block content %}
 <div class="container">
-    <div class="row justify-content-center align-items-center" style="height: 100vh;">
+    <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
         <div class="col-md-6 col-lg-5">
-            <div class="card p-4 shadow">
-                <h2 class="text-center mb-4" style="font-size: 32px; color: #FF66B2; font-weight: bold;">Glow & Glam</h2>
+            <div class="card p-4 shadow" style="background: linear-gradient(135deg,rgb(243, 210, 222) 0%, #f0cad8 100%);">
+                <h2 class="text-center mb-4" style="font-size: 32px; color: #623737; font-weight: bold;">Glow & Glam</h2>
 
                 <!-- Verification Form -->
                 <form id="verifyForm" method="POST">
                     {% csrf_token %}
                     
-                     {% if messages %}
-                        <div class="form-group mt-3">
+                    {% if messages %}
+                        <div class="form-group">
                             {% for message in messages %}
-                                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags %}{% endif %}">
+                                    {{ message }}
+                                </div>
                             {% endfor %}
-                          </div>
-                     {% endif %}
+                        </div>
+                    {% endif %}
+                    
                     <div class="form-group">
-                        <label for="verification_code">Verification Code</label>
-                        <input type="text" class="form-control" id="verification_code" name="verification_code" required placeholder="Enter 6-digit code">
+                        <label for="verification_code" style="color: #623737;">Verification Code</label>
+                        <input type="text" 
+                               class="form-control {% if form.errors %}is-invalid{% endif %}" 
+                               id="verification_code" 
+                               name="verification_code" 
+                               required 
+                               placeholder="Enter 6-digit code"
+                               maxlength="6"
+                               pattern="\d{6}"
+                               title="Please enter a 6-digit number">
+                        {% if form.verification_code.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.verification_code.errors.0 }}
+                            </div>
+                        {% endif %}
                     </div>
 
-                    <button type="submit" class="btn btn-success d-block mt-3 mx-auto">Verify Code</button>
+                    <button type="submit" class="btn btn-pink d-block mt-3 mx-auto" style="background-color: #623737; color: white;">
+                        <span class="submit-text">Verify Code</span>
+                        <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    </button>
 
                     <div class="mt-3 text-center">
-                        <a href="{% url 'store:resend_verification_code' %}">Resend verification code</a>
+                        <a href="{% url 'store:resend_verification_code' %}" style="color: #623737; text-decoration: underline;">
+                            Resend verification code
+                        </a>
                     </div>
 
-                    <div id="error_message" class="mt-2 text-danger" style="display:none;"></div>
+                    <div id="error_message" class="mt-2 text-danger text-center" style="display:none;"></div>
                 </form>
             </div>
         </div>
@@ -39,28 +60,77 @@
 <script>
 document.getElementById('verifyForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    const verification_code = document.getElementById('verification_code').value;
+    const form = this;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const submitText = submitBtn.querySelector('.submit-text');
+    const spinner = submitBtn.querySelector('.spinner-border');
     const errorDiv = document.getElementById('error_message');
+    
+    // Show loading state
+    submitText.textContent = 'Verifying...';
+    spinner.classList.remove('d-none');
+    errorDiv.style.display = 'none';
 
+    // Get form data including CSRF token
+    const formData = new FormData(form);
+    
     fetch("{% url 'store:verify_code' %}", {
         method: "POST",
         headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
         },
-        body: new URLSearchParams({
-            verification_code: verification_code,
-        })
+        body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             window.location.href = "{% url 'store:home' %}";
         } else {
-            errorDiv.innerText = data.error || 'Invalid verification code.';
+            errorDiv.textContent = data.error || 'Invalid verification code.';
             errorDiv.style.display = 'block';
+            if (data.redirect_url) {
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 1500);
+            }
         }
+    })
+    .catch(error => {
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        errorDiv.style.display = 'block';
+        console.error('Error:', error);
+    })
+    .finally(() => {
+        submitText.textContent = 'Verify Code';
+        spinner.classList.add('d-none');
     });
 });
 </script>
+
+<style>
+    .card {
+        border-radius: 15px;
+        border: none;
+    }
+    .btn-pink {
+        transition: all 0.3s ease;
+        border: none;
+        padding: 10px 25px;
+    }
+    .btn-pink:hover {
+        background-color: #4a2a2a !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(98, 55, 55, 0.3);
+    }
+    .form-control:focus {
+        border-color: #623737;
+        box-shadow: 0 0 0 0.2rem rgba(98, 55, 55, 0.25);
+    }
+    .alert {
+        border-radius: 8px;
+    }
+</style>
 {% endblock %}

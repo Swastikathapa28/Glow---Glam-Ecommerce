@@ -9,24 +9,23 @@ from django.conf import settings
 from .models import Product,CustomUser,Review,CartItem,Cart,Category
 import random
 import json
+import uuid
 from django.contrib.auth.forms import SetPasswordForm
 from django.template.loader import render_to_string
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.urls import reverse
-from django.template.loader import render_to_string
+
 from django.contrib import messages
 
 # Using the custom user model if defined
 User = get_user_model()
 from django.shortcuts import render
-from .models import Product,Order,OrderItem
+
 
 # Define categories manually
 CATEGORIES = [
@@ -61,9 +60,13 @@ def login_view(request):
             password = form.cleaned_data['password']
 
             user = authenticate(request, email=email, password=password)
+
             if user is not None:
                 login(request, user)
-                return redirect('store:home')
+                if user.is_staff:
+                    return redirect('/admin/')  # Redirect to admin page if staff
+                else:
+                    return redirect('store:home')
             else:
                 form.add_error(None, 'Email and Password not matching')  # Add form error
     else:
@@ -76,6 +79,8 @@ def logout_view(request):
     return redirect('store:home')
 
 
+from django.http import JsonResponse
+
 def register_view(request):
     if request.method == 'POST':
         form = RegisterrForm(request.POST)
@@ -84,15 +89,11 @@ def register_view(request):
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
 
-
             if CustomUser.objects.filter(email=email).exists():
-                messages.error(request, 'Email already exists.')
-                return redirect('register')
+                return JsonResponse({'success': False, 'error': 'Email already exists.'})
 
-            # Generate a 6-digit code
             verification_code = ''.join(random.choices('0123456789', k=6))
 
-            # Save everything in session
             request.session['temp_user'] = {
                 'full_name': full_name,
                 'email': email,
@@ -100,7 +101,6 @@ def register_view(request):
                 'code': verification_code
             }
 
-            # Send code via email
             send_mail(
                 'Glow & Glam Verification Code',
                 f'Your verification code is: {verification_code}',
@@ -109,13 +109,15 @@ def register_view(request):
                 fail_silently=False,
             )
 
-            messages.success(request, 'Please check your email for the verification code.')
-            return redirect('store:verify_code')
+            return JsonResponse({'success': True})  # ✅ Now your JS can read this
+
+        else:
+            # Optional: send form validation errors
+            return JsonResponse({'success': False, 'error': 'Invalid form data.'})
 
     else:
         form = RegisterrForm()
-    return render(request, 'store/register.html', {'form': form})
-
+        return render(request, 'store/register.html', {'form': form})
 
 from django.views.decorators.csrf import csrf_exempt
 
@@ -133,7 +135,7 @@ def verify_code_view(request):
             user = CustomUser.objects.create(
                 email=temp_user['email'],
                 full_name=temp_user['full_name'],
-                dob=temp_user['dob'],
+                
             )
             user.set_password(temp_user['password'])
             user.save()
@@ -374,47 +376,6 @@ def profile(request):
     """Display user profile"""
     return render(request, 'store/profile.html', {"user": request.user})
 
-@login_required
-def checkout(request):
-    cart = Cart(request)
-
-    if request.method == 'POST':
-        # Get user information from form data
-        full_name = request.POST.get('full_name')
-        email = request.POST.get('email')
-        address = request.POST.get('address')
-        phone_number = request.POST.get('phone_number')
-
-        # Create the order
-        order = Order.objects.create(
-            user=request.user,
-            full_name=full_name,
-            email=email,
-            address=address,
-            phone_number=phone_number,
-            total_price=cart.get_total_price(),
-        )
-
-        # Create order items from cart
-        for item in cart.cart.values():
-            OrderItem.objects.create(
-                order=order,
-                product=item['product'],
-                quantity=item['quantity'],
-                price=item['price']
-            )
-
-        # Clear the cart after successful order placement
-        cart.clear()
-
-        messages.success(request, 'Your order has been placed successfully!')
-        return redirect('order_success')  # Redirect to the success page
-
-    return render(request, 'store/checkout.html', {'cart': cart})
-
-@login_required
-def order_success(request):
-    return render(request, 'store/order_success.html')
 
 def search_results(request):
     query = request.GET.get('q', '')  # Get search query

@@ -1,0 +1,1938 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-6">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid">
+        </div>
+        <div class="col-md-6">
+            <h1>{{ product.name }}</h1>
+            <div class="mb-2">
+                <span class="text-warning">★ {{ product.rating|default:"0" }}/5</span>
+                <span class="text-muted small">({{ product.total_reviews }} reviews)</span>
+            </div>
+            
+            <div class="mb-3 d-flex align-items-center pt-5">
+                <label for="quantity" class="form-label fw-bold me-2">Quantity</label>
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="decrease-quantity">-</button>
+                <input type="number" class="form-control mx-1" id="quantity" value="1" min="1" style="width: 60px;">
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="increase-quantity">+</button>
+            </div>
+            
+            <script>
+                document.getElementById('increase-quantity').addEventListener('click', function() {
+                    var quantityInput = document.getElementById('quantity');
+                    var currentQuantity = parseInt(quantityInput.value);
+                    quantityInput.value = currentQuantity + 1;
+                });
+
+                document.getElementById('decrease-quantity').addEventListener('click', function() {
+                    var quantityInput = document.getElementById('quantity');
+                    var currentQuantity = parseInt(quantityInput.value);
+                    if (currentQuantity > 1) {
+                        quantityInput.value = currentQuantity - 1;
+                    }
+                });
+            </script>
+
+            <div class="text-end pt-5">
+                {% if product.discount_price < product.original_price %}
+                    <span class="text-muted text-decoration-line-through">Rs. {{ product.original_price }} |</span>
+                    <span class="fw-bold text-danger">Rs. {{ product.discount_price }}</span>
+                    <span class="badge bg-success ms-2">-{{ product.discount_percent }}% OFF</span>
+                {% else %}
+                    <span class="fw-bold">Rs. {{ product.original_price }}</span>
+                {% endif %}
+            </div>
+
+            <div class="text-end pt-3">
+                <button class="btn btn-primary" id="add-to-cart-btn">Add to Cart</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS SECTION -->
+    <ul class="nav nav-tabs mt-5" id="productTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active d-flex align-items-center gap-2" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc" type="button" role="tab" aria-controls="desc" aria-selected="true">
+                <i class="bi bi-file-text"></i> Description
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link d-flex align-items-center gap-2" id="review-tab" data-bs-toggle="tab" data-bs-target="#review" type="button" role="tab" aria-controls="review" aria-selected="false">
+                <i class="bi bi-hand-thumbs-up"></i> Rating & Review
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content border border-top-0 p-4">
+        <!-- DESCRIPTION TAB -->
+        <div class="tab-pane fade show active" id="desc" role="tabpanel" aria-labelledby="desc-tab">
+            <h4 class="fw-bold mb-3">Product Details</h4>
+            <p class="lead">{{ product.description }}</p>
+        </div>
+
+        <!-- REVIEW TAB -->
+        <div class="tab-pane fade" id="review" role="tabpanel" aria-labelledby="review-tab">
+            <div class="reviews-section">
+                <h4 class="fw-bold mb-3">Customer Reviews</h4>
+
+                <!-- Display Reviews -->
+                {% for review in product.reviews.all %}
+                    <div class="border-bottom mb-3 pb-2">
+                        <p><strong>{{ review.user.username }}</strong> <small class="text-muted">({{ review.created_at|date:"F j, Y" }})</small></p>
+                        <p>{{ review.content }}</p>
+                        <div class="rating text-warning">
+                            {% for i in "12345"|slice:":review.rating"|make_list %}
+                                <i class="bi bi-star-fill"></i>
+                            {% endfor %}
+                            {% for i in "12345"|slice:"review.rating:"|make_list %}
+                                <i class="bi bi-star"></i>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>No reviews yet. Be the first to review this product!</p>
+                {% endfor %}
+
+                <!-- Add Review Form -->
+                <h5 class="mt-4">Add a Review</h5>
+                <form method="POST" action="{% url 'store:add_review' product.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="review-content" class="form-label">Your Review</label>
+                        <textarea id="review-content" name="review_text" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Rating</label>
+                        <select id="rating" name="rating" class="form-control" required>
+                            <option value="1">1 Star</option>
+                            <option value="2">2 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="5">5 Stars</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success">Submit Review</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Items Section -->
+    <hr>
+    <h3 class="mt-5">Related Items</h3>
+    <div class="row">
+        {% for related_product in related_products %}
+            <div class="col-md-3 mb-4">
+                <div class="card">
+                    <img src="{{ related_product.image.url }}" class="card-img-top" alt="{{ related_product.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ related_product.name }}</h5>
+                        <p class="card-text">
+                            {% if related_product.discount_price < related_product.original_price %}
+                                <span class="text-muted text-decoration-line-through">Rs. {{ related_product.original_price }}</span>
+                                <span class="fw-bold text-danger">Rs. {{ related_product.discount_price }}</span>
+                            {% else %}
+                                <span class="fw-bold">Rs. {{ related_product.original_price }}</span>
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'store:product_detail' related_product.id %}" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>No related items found.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    document.getElementById('add-to-cart-btn').addEventListener('click', function() {
+        var quantity = document.getElementById('quantity').value;
+        var productId = "{{ product.id }}";
+
+        fetch("/add-to-cart/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                'product_id': productId,
+                'quantity': quantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Item added to cart successfully!");
+            } else {
+                alert("There was an issue adding the item to the cart.");
+            }
+        });
+    });
+</script>
+
+{% endblock %}
+
+def forgot_password(request):
+    if request.method == 'POST':
+        form = ForgetPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            try:
+                # Get the user associated with the email
+                user = get_user_model().objects.get(email=email)
+                
+                # Create token and generate reset URL
+                token = default_token_generator.make_token(user)
+                uidb64 = urlsafe_base64_encode(str(user.pk).encode())
+                reset_url = request.build_absolute_uri(reverse('store:reset_password', args=[uidb64, token]))
+
+                # Send the reset email
+                message = render_to_string('store/password_reset_email.html', {
+                    'user': user,
+                    'reset_url': reset_url,
+                })
+                send_mail(
+                    'Password Reset Request',
+                    message,
+                    'no-reply@yourdomain.com',  # Replace with your email
+                    [user.email],
+                )
+                messages.success(request, "We've sent you an email with a link to reset your password.")
+                return redirect('store:forgot_password')  # Redirect after sending email
+                
+            except get_user_model().DoesNotExist:
+                messages.error(request, "This email address is not registered.")
+                return redirect('store:forgot_password')
+    else:
+        form = ForgetPasswordForm()
+
+    return render(request, 'store/forgot_password.html', {'form': form})
+
+    def verify_code_view(request): 
+      if request.method == 'POST':
+        code = request.POST.get('verification_code')
+    temp_user = request.session.get('temp_user')
+
+    if not temp_user:
+        messages.error(request, 'Session expired. Please register again.')
+        return redirect('store:register')
+
+    if code == temp_user['code']:
+        # Create the actual user
+        user = CustomUser.objects.create(
+            email=temp_user['email'],
+            full_name=temp_user['full_name'],
+            dob=temp_user['dob'],
+        )
+        user.set_password(temp_user['password'])
+        user.save()
+
+        del request.session['temp_user']
+        messages.success(request, 'Account verified and registered successfully!')
+        return redirect('store:login')
+    else:
+        messages.error(request, 'Incorrect verification code.')
+        return redirect('store:verify_code')
+
+return render(request, 'store/verify_code.html')
+
+def forgot_password(request):
+    if request.method == 'POST':
+        form = ForgetPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            try:
+                # Get the user associated with the email
+                user = get_user_model().objects.get(email=email)
+                
+                # Create token and generate reset URL
+                token = default_token_generator.make_token(user)
+                uidb64 = urlsafe_base64_encode(str(user.pk).encode())
+                reset_url = request.build_absolute_uri(reverse('store:reset_password', args=[uidb64, token]))
+
+                # Send the reset email
+                message = render_to_string('store/password_reset_email.html', {
+                    'user': user,
+                    'reset_url': reset_url,  # Pass reset URL to the template
+                })
+                send_mail(
+                    'Password Reset Request',
+                    message,
+                    'no-reply@yourdomain.com',  # Replace with your email
+                    [user.email],
+                )
+                messages.success(request, "We've sent you an email with a link to reset your password.")
+                return redirect('store:forgot_password')  # Redirect after sending email
+                
+            except get_user_model().DoesNotExist:
+                messages.error(request, "This email address is not registered.")
+                return redirect('store:forgot_password')
+    else:
+        form = ForgetPasswordForm()
+
+    # Render the forgot password form for GET requests
+    return render(request, 'store/forgot_password.html', {'form': form})
+
+
+from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
+from django.utils.http import urlsafe_base64_decode
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+def reset_password(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = get_user_model().objects.get(pk=uid)
+
+        # Validate the token
+        if default_token_generator.check_token(user, token):
+            if request.method == 'POST':
+                form = SetPasswordForm(user, request.POST)
+                if form.is_valid():
+                    form.save()
+                    messages.success(request, 'Your password has been reset successfully.')
+                    return redirect('store:login')
+            else:
+                form = SetPasswordForm(user)
+
+            return render(request, 'store/reset_password.html', {'form': form})
+        else:
+            messages.error(request, 'The reset link is invalid or expired.')
+            return redirect('store:forgot_password')
+
+    except Exception as e:
+        messages.error(request, 'Something went wrong. Please try again.')
+        return redirect('store:forgot_password')
+
+        def add_to_cart(request):
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            product_id = data.get('product_id')
+            quantity = data.get('quantity')
+    
+            if product_id and quantity:
+                product = get_object_or_404(Product, id=product_id)
+    
+                # Cart is stored in session (you can replace this with a model if needed)
+                cart = request.session.get('cart', {})
+                if product_id in cart:
+                    cart[product_id]['quantity'] += quantity
+                else:
+                    cart[product_id] = {'name': product.name, 'quantity': quantity, 'price': str(product.price)}
+    
+                request.session['cart'] = cart
+                return JsonResponse({'success': True})
+            else:
+                return JsonResponse({'success': False, 'message': 'Invalid data'})
+        return JsonResponse({'success': False, 'message': 'Invalid request method'})
+    
+    @login_required
+    def cart_view(request):
+        cart_items = CartItem.objects.filter(user=request.user)
+        total_price = sum(item.get_total_price() for item in cart_items)
+    
+        # Related items (limit 3 for now)
+        related_items = Product.objects.all().exclude(id__in=[item.product.id for item in cart_items])[:3]
+    
+        return render(request, 'store/cart.html', {
+            'cart_items': cart_items,
+            'total_price': total_price,
+            'related_items': related_items
+        })@login_required
+        def add_to_cart(request, product_id):
+            product = get_object_or_404(Product, id=product_id)
+            cart, created = Cart.objects.get_or_create(user=request.user)
+            cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+            
+            if not created:
+                cart_item.quantity += 1
+                cart_item.save()
+            
+            return redirect('store:view_cart')
+        # store/views.py
+        @csrf_exempt
+        @login_required
+        def add_to_cart(request):
+            if request.method == 'POST':
+                try:
+                    data = json.loads(request.body)
+                    product_id = data.get('product_id')
+                    quantity = int(data.get('quantity', 1))
+        
+                    product = Product.objects.get(id=product_id)
+                    cart, created = Cart.objects.get_or_create(user=request.user)
+                    cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+        
+                    if not created:
+                        cart_item.quantity += quantity
+                    else:
+                        cart_item.quantity = quantity
+        
+                    cart_item.save()
+        
+                    return JsonResponse({'success': True})
+                except Exception as e:
+                    return JsonResponse({'success': False, 'error': str(e)})
+            return JsonResponse({'success': False, 'error': 'Invalid request method'})
+        #product.html
+        {% extends 'store/base.html' %}
+{% load static %}
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Product Image -->
+        <div class="col-md-6">
+            <div class="product-image">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid rounded shadow">
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <h1 class="product-title mb-3">{{ product.name }}</h1>
+
+            <div class="product-rating mb-3">
+                <span class="text-warning">★ {{ product.average_rating|default:"0" }}/5</span>
+                <span class="text-muted small">({{ product.total_reviews }} reviews)</span>
+            </div>
+
+            <!-- Quantity Selector -->
+            
+            <div class="mb-3 d-flex align-items-center pt-5">
+                <label for="quantity" class="form-label fw-bold me-2">Quantity</label>
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="decrease-quantity">-</button>
+                <input type="number" class="form-control mx-1" id="quantity" value="1" min="1" style="width: 60px;">
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="increase-quantity">+</button>
+            </div>
+            
+            <script>
+                // Quantity increment/decrement buttons
+                document.getElementById('increase-quantity').addEventListener('click', function() {
+                    var quantityInput = document.getElementById('quantity');
+                    quantityInput.value = parseInt(quantityInput.value) + 1;
+                });
+            
+                document.getElementById('decrease-quantity').addEventListener('click', function() {
+                    var quantityInput = document.getElementById('quantity');
+                    if (parseInt(quantityInput.value) > 1) {
+                        quantityInput.value = parseInt(quantityInput.value) - 1;
+                    }
+                });
+            </script>
+
+            <!-- Price Section -->
+            <div class="price-section text-end mb-4">
+                {% if product.discount_price < product.original_price %}
+                    <span class="text-muted text-decoration-line-through">Rs. {{ product.original_price }}</span>
+                    <span class="fw-bold text-danger">Rs. {{ product.discount_price }}</span>
+                    <span class="badge bg-success ms-2">-{{ product.discount_percent }}% OFF</span>
+                {% else %}
+                    <span class="fw-bold">Rs. {{ product.original_price }}</span>
+                {% endif %}
+            </div>
+                           
+<div class="text-end pt-3">
+    <button class="btn btn-primary" id="add-to-cart-btn">Add to Cart</button>
+</div>
+
+<!-- JavaScript -->
+<script>
+    document.getElementById('add-to-cart-btn').addEventListener('click', function() {
+        var quantity = document.getElementById('quantity').value;
+        var productId = "{{ product.id }}";
+
+        fetch("{% url 'store:add_to_cart' product.id %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                'product_id': productId,
+                'quantity': quantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Product added to cart');
+                window.location.href = "{% url 'store:view_cart' %}";
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Something went wrong. Please try again.');
+        });
+    });
+</script>
+            
+        </div>
+    </div>
+
+    <!-- Tabs for Description and Reviews -->
+    <ul class="nav nav-tabs mt-5" id="productTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc" type="button" role="tab" aria-controls="desc" aria-selected="true">
+                <i class="bi bi-file-earmark-text"></i> Description
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="review-tab" data-bs-toggle="tab" data-bs-target="#review" type="button" role="tab" aria-controls="review" aria-selected="false">
+                <i class="bi bi-chat-left-dots"></i> Rating & Reviews
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content border p-4 mt-4">
+        <!-- Description Tab -->
+        <div class="tab-pane fade show active" id="desc" role="tabpanel" aria-labelledby="desc-tab">
+            <h4 class="fw-bold mb-3">Product Details</h4>
+            <p class="lead">{{ product.description }}</p>
+        </div>
+
+        <!-- Review Tab -->
+        <div class="tab-pane fade" id="review" role="tabpanel" aria-labelledby="review-tab">
+            <div class="reviews-section">
+                <h4 class="fw-bold mb-3">Customer Reviews</h4>
+
+                <!-- Display Reviews -->
+                {% for review in product.reviews.all %}
+                    <div class="border-bottom mb-3 pb-2">
+                        <p>
+                            <button class="btn btn-info btn-sm" type="button">{{ review.rating }}⭐</button>
+                            <strong>{{ review.user.full_name }}</strong>
+                            <small class="text-muted">({{ review.created_at|date:"F j, Y" }})</small>
+                        </p>
+                        <p>{{ review.review_text }}</p>
+                        <div class="rating text-warning">
+                            {% for i in "12345" %}
+                                {% if i|add:0 <= review.rating %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>No reviews yet. Be the first to review this product!</p>
+                {% endfor %}
+
+                <!-- Add Review Form -->
+                <h5 class="mt-4">Add a Review</h5>
+                <form method="POST" action="{% url 'store:product_detail' product.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="review-content" class="form-label">Your Review</label>
+                        <textarea id="review-content" name="review_text" class="form-control" rows="4" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Rating</label>
+                        <div class="star-rating">
+                            {% for i in "12345" %}
+                                <span class="star ml-2" data-value="{{ i }}">&#9733;</span>
+                            {% endfor %}
+                            <input type="hidden" name="rating" id="rating-input" value="0" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Submit Review</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Items Section -->
+    <hr>
+    <h3 class="mt-5">Related Items</h3>
+    <div class="row">
+        {% for related_product in related_products %}
+            <div class="col-md-3 mb-4">
+                <div class="card shadow-sm">
+                    <img src="{{ related_product.image.url }}" class="card-img-top" alt="{{ related_product.name }}" style="width: 300px; height: 250px; object-fit: cover;">
+                    
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">{{ related_product.name }}</h5>
+                        <p class="card-text">
+                            {% if related_product.discount_price < related_product.original_price %}
+                                <span class="text-muted text-decoration-line-through">Rs. {{ related_product.original_price }}</span>
+                                <span class="fw-bold text-danger">Rs. {{ related_product.discount_price }}</span>
+                            {% else %}
+                                <span class="fw-bold">Rs. {{ related_product.original_price }}</span>
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'store:product_detail' related_product.id %}" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>No related items found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+cart_view@login_required
+def view_cart(request):
+    # Get or create the cart for the logged-in user
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    
+    # Get all items in the cart
+    cart_items = CartItem.objects.filter(cart=cart)
+    
+    # Check for insufficient stock
+    insufficient_stock_items = []
+    for item in cart_items:
+        if item.product.quantity < item.quantity:
+            insufficient_stock_items.append({
+                'product': item.product,
+                'available_quantity': item.product.quantity,
+                'requested_quantity': item.quantity
+            })
+    
+    # Render the cart template with the cart and insufficient stock items
+    context = {
+        'cart': cart,
+        'insufficient_stock_items': insufficient_stock_items
+    }
+    return render(request, 'store/view_cart.html', context)
+view_cart  <div class="row">
+    {% for product in related_products %}
+    <div class="col-4 mb-4">
+        <div class="card h-100">
+            <img src="{{ product.image.url }}" class="card-img-top" style="height : 220px; width : 230px;" alt="{{ product.name }}">
+            <div class="card-body text-center">
+                <h6>{{ product.name }}</h6>
+                <p>NPR. {{ product.discount_price|default:product.original_price }}</p>
+                <a href="{% url 'store:product_detail' product.id %}" class="btn btn-primary">View Details</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>No related items found.</p>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}
+#base
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Glow & Glam{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        /* General Styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wrapper {
+            flex: 1; /* Allow the wrapper to grow and push the footer down */
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            background: linear-gradient(to right, rgb(253, 237, 251), rgb(218, 94, 170), rgba(255, 247, 245, 0.75)); /* Peach gradient */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for better depth */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f8f9fa;
+        }
+
+        .search-input {
+            width: 100%;
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+        }
+
+        .custom-dropdown .dropdown-toggle::after {
+            display: none;
+        }
+
+        /* Button Styles */
+        .btn-pink {
+            background-color: rgb(192, 142, 187);
+            border-color: rgb(247, 89, 162);
+        }
+
+        .btn-pink:hover {
+            background-color: rgb(250, 92, 221);
+            border-color: rgb(240, 69, 129);
+        }
+
+        /* Button Styles - Generic */
+        .btn {
+            background-color: rgb(240, 69, 129);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        /* Custom responsive styles */
+        @media (max-width: 768px) {
+            .navbar-collapse {
+                text-align: center;
+            }
+
+            .search-input {
+                margin-bottom: 1rem;
+            }
+
+            .nav-item {
+                margin-bottom: 0.5rem;
+            }
+
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+
+            .search-input {
+                width: 80%;
+            }
+
+            .navbar .navbar-nav {
+                margin-top: 1rem;
+            }
+
+            .dropdown-menu {
+                width: 100%;
+                text-align: center;
+            }
+        }
+        /* Why Shop With Us Section */
+.why-shop-with-us {
+    background-color: #fff9fb;
+    background-image: url('{% static "images/beauty-pattern.png" %}');
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: overlay;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(232, 62, 140, 0.1);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(232, 62, 140, 0.1);
+}
+
+/* Footer Styling */
+.footer {
+    background: linear-gradient(135deg, #3a1c71, #d76d77, #ffaf7b);
+}
+
+.text-pink {
+    color: #ffcce6 !important;
+}
+
+.footer a {
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.footer a:hover {
+    color: #ffcce6 !important;
+    padding-left: 5px;
+}
+
+.social-icons a {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.social-icons a:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-3px);
+}
+
+/* Newsletter Form */
+.input-group .form-control {
+    border-radius: 30px 0 0 30px;
+    border: none;
+}
+
+.input-group .btn {
+    border-radius: 0 30px 30px 0;
+    background: #e83e8c;
+    border: none;
+}
+
+.input-group .btn:hover {
+    background: #d62d7b;
+}
+        /* Footer Styles */
+        footer {
+            background: linear-gradient(to right, rgba(190, 128, 184, 0.334), rgb(187, 77, 168), rgb(218, 94, 170));
+            padding: 20px;
+            text-align: center;
+            margin-top: auto; /* Push the footer to the bottom */
+        }
+
+        .footer-links {
+            margin-bottom: 20px;
+        }
+
+        .footer-links a {
+            margin: 0 15px;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: #e83e8c;
+        }
+
+        .footer-social-icons i {
+            margin: 0 10px;
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .footer-social-icons i:hover {
+            color: #e83e8c;
+        }
+    </style>
+</head>
+<body>
+    <!-- Wrapper for Flexbox -->
+    <div class="wrapper">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+            <div class="container">
+                <a class="navbar-brand fw-bold" href="{% url 'store:home' %}">Glow & Glam</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <!-- Categories Dropdown -->
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarCategory" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarCategory">
+                            <li><a class="dropdown-item" href="{% url 'store:category' 'Cleanser' %}">Cleanser</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:category' 'Serum' %}">Serum</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:category' 'Moisturizer' %}">Moisturizer</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:category' 'Sunscreen' %}">Sunscreen</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:category' 'Toner' %}">Toner</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:category' 'Foundation' %}">Foundation</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:category' 'Makeup Remover' %}">Makeup Remover</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:category' 'Eye Product' %}">Eye Product</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:category' 'Lip Product' %}">Lip Product</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:category' 'Bronzer' %}">Bronzer</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:category' 'Primer' %}">Primer</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <form class="d-flex flex-grow-1 mx-3" method="GET" action="{% url 'store:search_results' %}">
+                        <input class="form-control search-input" type="search" placeholder="Search for products..." name="q" value="{{ request.GET.q }}">
+                        <button class="btn btn-outline-primary ms-2" type="submit">Search</button>
+                    </form>
+
+                    <!-- Account Dropdown -->
+                    <div class="dropdown custom-dropdown">
+                        <a class="btn btn-outline-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> My Account
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'store:register' %}">Join Us</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:contact_us' %}">Contact Us</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:about_us' %}">About Us</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:terms_condition' %}">Terms & Conditions</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store:order' %}">My Order</a></li>
+                            {% if user.is_authenticated %}
+                                <li><a class="dropdown-item" href="{% url 'store:logout' %}">Logout</a></li>
+                            {% else %}
+                                <li><a class="dropdown-item" href="{% url 'store:login' %}">Login</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <!-- Shopping Cart Icon for logged-in users -->
+                    <div class="nav-item">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'store:view_cart' %}" class="text-dark">
+                                <i class="fas fa-shopping-cart fs-5 ms-2"></i>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'store:login' %}" class="text-dark">
+                                <i class="fas fa-shopping-cart fs-5 ms-2"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="nav-item">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'store:profile' %}" class="text-dark">
+                                <i class="fas fa-user-circle fs-5 ms-2"></i> <!-- Profile Icon -->
+                            </a>
+                        {% else %}
+                            <a href="{% url 'store:login' %}" class="text-dark">
+                                <i class="fas fa-user-circle fs-5 ms-2"></i> <!-- Login Icon -->
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="container py-4">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div> <!-- End of Wrapper -->
+    <!-- templates/includes/why_shop_with_us.html -->
+<section class="why-choose-us py-5 bg-light">
+    <div class="container">
+      <div class="row mb-4">
+        <div class="col text-center">
+          <h2 class="section-title">Why Shop With Us</h2>
+          <p class="section-subtitle">We provide the best shopping experience</p>
+        </div>
+      </div>
+      
+      <div class="row">
+        <!-- Feature 1 -->
+        <div class="col-md-4 mb-4">
+          <div class="feature-card text-center p-4 h-100">
+            <div class="feature-icon mb-3">
+              <i class="fas fa-truck fa-3x text-primary"></i>
+            </div>
+            <h3>Free Shipping</h3>
+            <p>Enjoy free shipping on all orders over $50</p>
+          </div>
+        </div>
+        
+        <!-- Feature 2 -->
+        <div class="col-md-4 mb-4">
+          <div class="feature-card text-center p-4 h-100">
+            <div class="feature-icon mb-3">
+              <i class="fas fa-shield-alt fa-3x text-primary"></i>
+            </div>
+            <h3>Quality Guarantee</h3>
+            <p>We only sell authentic, high-quality products</p>
+          </div>
+        </div>
+        
+        <!-- Feature 3 -->
+        <div class="col-md-4 mb-4">
+          <div class="feature-card text-center p-4 h-100">
+            <div class="feature-icon mb-3">
+              <i class="fas fa-undo fa-3x text-primary"></i>
+            </div>
+            <h3>Easy Returns</h3>
+            <p>30-day hassle-free return policy</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row">
+        <!-- Feature 4 -->
+        <div class="col-md-4 mb-4">
+          <div class="feature-card text-center p-4 h-100">
+            <div class="feature-icon mb-3">
+              <i class="fas fa-lock fa-3x text-primary"></i>
+            </div>
+            <h3>Secure Payment</h3>
+            <p>Your payment information is protected</p>
+          </div>
+        </div>
+        
+        <!-- Feature 5 -->
+        <div class="col-md-4 mb-4">
+          <div class="feature-card text-center p-4 h-100">
+            <div class="feature-icon mb-3">
+              <i class="fas fa-headset fa-3x text-primary"></i>
+            </div>
+            <h3>24/7 Support</h3>
+            <p>Our customer service team is always ready</p>
+          </div>
+        </div>
+        
+        <!-- Feature 6 -->
+        <div class="col-md-4 mb-4">
+          <div class="feature-card text-center p-4 h-100">
+            <div class="feature-icon mb-3">
+              <i class="fas fa-gift fa-3x text-primary"></i>
+            </div>
+            <h3>Special Offers</h3>
+            <p>Exclusive deals for our loyal customers</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  CATEGORY_CHOICES = [
+  ('Cleanser', 'Cleanser'),
+  ('Serum', 'Serum'),
+  ('Moisturizer', 'Moisturizer'),
+  ('Sunscreen', 'Sunscreen'),
+  ('Toner', 'Toner'),
+  ('Foundation', 'Foundation'),
+  ('Makeup Remover', 'Makeup Remover'),
+  ('Eye Product', 'Eye Product'),
+  ('Lip Product', 'Lip Product'),
+  ('Bronzer', 'Bronzer'),
+  ('Primer', 'Primer'),
+]
+    <!-- Footer -->
+    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES)
+    def homepage(request):
+    # Fetch featured products (cleanser, sunscreen) from the database
+    products = Product.objects.filter(category__in=['cleanser','toner','lip product'])[:8]
+    return render(request, 'store/homepage.html', {'products': products})
+    /* General Styles */
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    /* Navbar Styles */
+    .navbar {
+        background: linear-gradient(to right, rgba(190, 128, 184, 0.334), rgb(98, 55, 91), rgb(105, 24, 74)); /* Peach gradient */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for better depth */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .dropdown-menu a:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .search-input {
+        width: 100%;
+        border-radius: 50px;
+        padding: 0.5rem 1rem;
+        border: 1px solid #ddd;
+    }
+    
+    .custom-dropdown .dropdown-toggle::after {
+        display: none;
+    }
+    
+    /* Button Styles */
+    .btn-pink {
+        background-color: rgb(26, 211, 155);
+        border-color: rgb(247, 89, 162);
+    }
+    
+    .btn-pink:hover {
+        background-color: rgb(13, 203, 177);
+        border-color: rgb(240, 69, 129);
+    }
+    
+    /* Button Styles - Generic */
+    .btn {
+        background-color: #4c0ccd;
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 5px;
+    }
+    
+    /* Custom responsive styles */
+    @media (max-width: 768px) {
+        .navbar-collapse {
+            text-align: center;
+        }
+    
+        .search-input {
+            margin-bottom: 1rem;
+        }
+    
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+    
+        .navbar-brand {
+            font-size: 1.2rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .navbar-brand {
+            font-size: 1.1rem;
+        }
+    
+        .search-input {
+            width: 80%;
+        }
+    
+        .navbar .navbar-nav {
+            margin-top: 1rem;
+        }
+    
+        .dropdown-menu {
+            width: 100%;
+            text-align: center;
+        }
+    }
+    
+    /* Footer Styles */
+    footer {
+        background-color: rgb(247, 230, 237);
+        padding: 30px 0;
+    }
+    
+    .footer-links {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .footer-links a {
+        margin: 0 15px;
+        color: #333;
+        text-decoration: none;
+    }
+    
+    .footer-links a:hover {
+        color: #e83e8c;
+    }
+    
+    .footer-social-icons {
+        text-align: center;
+    }
+    
+    .footer-social-icons i {
+        margin: 0 10px;
+        font-size: 1.5rem;
+        color: #333;
+    }
+    
+    .footer-social-icons i:hover {
+        color: #e83e8c;
+    }
+    
+    /* Hero Section */
+    .hero {
+        background-image: url('hero.jpg');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        text-align: center;
+        padding: 100px 20px;
+    }
+    
+    .hero-content h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
+    
+    .hero-content p {
+        font-size: 24px;
+        margin-bottom: 30px;
+    }
+    
+    /* Featured Products */
+    .featured-products {
+        padding: 50px 20px;
+        text-align: center;
+    }
+    
+    .featured-products h2 {
+        font-size: 36px;
+        margin-bottom: 40px;
+    }
+    
+    .product-grid {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .product-card {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 10px;
+        width: 200px;
+        text-align: center;
+    }
+    
+    .product-card img {
+        max-width: 100%;
+        border-radius: 10px;
+    }
+    
+    /* Box-Link Styles */
+    .box-link {
+        border: 2px solid #000;
+        padding: 8px 15px;
+        background-color: #f0f0f0;
+        border-radius: 5px;
+        transition: all 0.3s ease-in-out;
+    }
+    
+    .box-link:hover {
+        background-color: #e0e0e0;
+        cursor: pointer;
+    }
+    
+    /* Star Rating Styles */
+    .star-rating .star {
+        cursor: pointer; /* Makes the star clickable */
+    }
+    :root {
+        --primary-pink: #e83e8c;
+        --secondary-pink: #ffcce6;
+        --dark-pink: #d62d7b;
+    }
+    
+    body {
+        font-family: 'Poppins', sans-serif;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    
+    .wrapper {
+        flex: 1;
+    }
+    
+    /* Navbar */
+    .navbar {
+        background: linear-gradient(to right, #fdedfb, #da5eaa, rgba(255,247,245,0.75));
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    /* Why Shop With Us */
+    .why-choose-us {
+        background-color:rgb(251, 244, 246);
+        padding: 3rem 0;
+    }
+    
+    .feature-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+        border: 1px solid rgba(232, 62, 140, 0.1);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(232, 62, 140, 0.1);
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(232,62,140,0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        color: var(--primary-pink);
+        font-size: 2rem;
+    }
+    
+    /* Footer */
+    footer {
+        background: linear-gradient(135deg, #3a1c71, #d76d77, #ffaf7b);
+        color: white;
+        padding: 3rem 0 1.5rem;
+    }
+    
+    .text-pink {
+        color: var(--secondary-pink);
+    }
+    
+    .footer-links a {
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .footer-links a:hover {
+        color: var(--secondary-pink);
+    }
+    
+    .social-icons a {
+        display: inline-block;
+        width: 36px;
+        height: 36px;
+        line-height: 36px;
+        text-align: center;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+    
+    .social-icons a:hover {
+        background: rgba(255,255,255,0.2);
+        transform: translateY(-3px);
+    }
+    
+    
+    /* Buttons */
+    .btn-pink {
+        background-color: rgb(192, 142, 187); /* Soft Pink */
+        color: white;
+        border: 2px solid rgb(247, 89, 162); /* Pink Border */
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: bold;
+        transition: all 0.3s ease-in-out;
+        cursor: pointer;
+    }
+    
+    .btn-pink:hover {
+        background-color: rgb(248, 166, 233); /* Brighter Pink */
+        border-color: rgb(247, 152, 185);
+       
+    }
+    
+    /* Generic Button Styles */
+    .btn {
+        background-color: rgb(240, 69, 129);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease-in-out;
+    }
+    
+    .btn:hover {
+        background-color: rgb(225, 111, 151);
+        transform: translateY(-2px);
+    }
+    .feature-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .feature-icon i {
+        color: #ff69b4;
+    }correct this css
+    {% extends 'store/base.html' %}
+{% load static %}
+{% load cart_tags %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="mb-4">Checkout</h2>
+    
+    <div class="row">
+        <!-- Delivery Information -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">Delivery Information</h4>
+                </div>
+                <div class="card-body">
+                    <form id="checkout-form" method="POST" action="{% url 'store:process_checkout' %}">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3">
+                            <!-- Full Name -->
+                            <div class="col-md-6">
+                                <label for="full_name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" 
+                                       value="{{ request.user.get_full_name|default:'' }}" required>
+                            </div>
+                            
+                            <!-- Phone Number -->
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                       pattern="[0-9]{10}" title="10 digit phone number" required>
+                            </div>
+                            
+                            <!-- Delivery Address -->
+                            <div class="col-12">
+                                <label for="address" class="form-label">Delivery Address</label>
+                                <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                            </div>
+                            
+                            <!-- Location Type -->
+                            <div class="col-md-6">
+                                <label for="location_type" class="form-label">Location</label>
+                                <select class="form-select" id="location_type" name="location_type" required>
+                                    <option value="">Select Location</option>
+                                    <option value="inside">Inside Kathmandu Valley</option>
+                                    <option value="outside">Outside Kathmandu Valley</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Delivery Instructions -->
+                            <div class="col-md-6">
+                                <label for="instructions" class="form-label">Delivery Instructions (Optional)</label>
+                                <input type="text" class="form-control" id="instructions" name="instructions">
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Method -->
+                        <div class="mt-4">
+                            <h5 class="mb-3">Payment Method</h5>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="payment_method" 
+                                       id="cash-on-delivery" value="cash" checked>
+                                <label class="form-check-label" for="cash-on-delivery">
+                                    <i class="bi bi-cash-coin"></i> Cash on Delivery
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="payment_method" 
+                                       id="esewa" value="esewa">
+                                <label class="form-check-label" for="esewa">
+                                    <img src="{% static 'store/images/esewa-logo.png' %}" alt="eSewa" style="height: 20px;">
+                                    eSewa
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_method" 
+                                       id="credit-card" value="credit_card">
+                                <label class="form-check-label" for="credit-card">
+                                    <i class="bi bi-credit-card"></i> Credit/Debit Card
+                                </label>
+                            </div>
+                            
+                            <!-- eSewa Payment Fields (Hidden by default) -->
+                            <div id="esewa-fields" class="mt-3" style="display: none;">
+                                <div class="alert alert-info">
+                                    You will be redirected to eSewa for payment after placing order
+                                </div>
+                            </div>
+                            
+                            <!-- Credit Card Fields (Hidden by default) -->
+                            <div id="credit-card-fields" class="mt-3" style="display: none;">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label for="card-number" class="form-label">Card Number</label>
+                                        <input type="text" class="form-control" id="card-number" 
+                                               placeholder="1234 5678 9012 3456" name="card_number">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="card-name" class="form-label">Name on Card</label>
+                                        <input type="text" class="form-control" id="card-name" name="card_name">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="card-expiry" class="form-label">Expiry Date</label>
+                                        <input type="text" class="form-control" id="card-expiry" 
+                                               placeholder="MM/YY" name="card_expiry">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="card-cvc" class="form-label">CVC</label>
+                                        <input type="text" class="form-control" id="card-cvc" 
+                                               placeholder="123" name="card_cvc">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">Your Order</h4>
+                </div>
+                <div class="card-body">
+                    <div class="order-items mb-3">
+                        {% for item in cart_items %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <h6 class="my-0">{{ item.product.name }}</h6>
+                                <small class="text-muted">Qty: {{ item.quantity }}</small>
+                            </div>
+                            <span class="text-muted">Rs. {{ item.product.discount_price|default:item.product.original_price|multiply:item.quantity }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <span>Subtotal</span>
+                        <span>Rs. {{ cart_total }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <span>Shipping</span>
+                        <span id="shipping-cost">Rs. 0</span>
+                    </div>
+                    
+                    {% if cart_discount > 0 %}
+                    <div class="d-flex justify-content-between text-success">
+                        <span>Discount</span>
+                        <span>-Rs. {{ cart_discount }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Total</span>
+                        <span id="order-total">Rs. {{ cart_total|subtract:cart_discount }}</span>
+                    </div>
+                    
+                    <button type="submit" form="checkout-form" class="btn btn-primary w-100 mt-3 py-2">
+                        Place Order
+                    </button>
+                    
+                    <div class="mt-2 text-center">
+                        <small class="text-muted">
+                            <i class="bi bi-lock-fill"></i> Your information is secure
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSS Styles -->
+<style>
+    .form-check-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .order-items {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    #esewa-fields img {
+        height: 40px;
+        margin-right: 10px;
+    }
+</style>
+
+<!-- JavaScript -->
+<script>
+    // Update shipping cost based on location
+    document.getElementById('location_type').addEventListener('change', function() {
+        const shippingCost = this.value === 'inside' ? 100 : 200;
+        document.getElementById('shipping-cost').textContent = `Rs. ${shippingCost}`;
+        updateOrderTotal(shippingCost);
+    });
+
+    // Show/hide payment method fields
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.getElementById('esewa-fields').style.display = 'none';
+            document.getElementById('credit-card-fields').style.display = 'none';
+            
+            if (this.value === 'esewa') {
+                document.getElementById('esewa-fields').style.display = 'block';
+            } else if (this.value === 'credit_card') {
+                document.getElementById('credit-card-fields').style.display = 'block';
+            }
+        });
+    });
+
+    // Format card inputs
+    document.getElementById('card-number').addEventListener('input', function(e) {
+        this.value = this.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+    });
+
+    document.getElementById('card-expiry').addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, '').replace(/(\d{2})(\d{0,2})/, '$1/$2');
+    });
+
+    // Calculate order total
+    function updateOrderTotal(shippingCost = 0) {
+        const subtotal = parseFloat({{ cart_total|subtract:cart_discount }});
+        const total = subtotal + shippingCost;
+        document.getElementById('order-total').textContent = `Rs. ${total.toFixed(2)}`;
+    }
+
+    // Initialize shipping cost
+    document.addEventListener('DOMContentLoaded', function() {
+        const locationType = document.getElementById('location_type');
+        if (locationType.value) {
+            const shippingCost = locationType.value === 'inside' ? 100 : 200;
+            document.getElementById('shipping-cost').textContent = `Rs. ${shippingCost}`;
+            updateOrderTotal(shippingCost);
+        }
+    });
+</script>
+{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/nouislider@15.6.1/dist/nouislider.min.js"></script>
+<script>
+  const priceSlider = document.getElementById('priceSlider');
+
+  noUiSlider.create(priceSlider, {
+    start: [0, 20000],
+    connect: true,
+    range: {
+      'min': 0,
+      'max': 20000
+    },
+    tooltips: false,  // disables tooltip
+  });
+
+  const minInput = document.getElementById('min_price');
+  const maxInput = document.getElementById('max_price');
+  const minDisplay = document.getElementById('minPriceValue');
+  const maxDisplay = document.getElementById('maxPriceValue');
+
+  priceSlider.noUiSlider.on('update', function (values, handle) {
+    const min = Math.round(values[0]);
+    const max = Math.round(values[1]);
+
+    minInput.value = min;
+    maxInput.value = max;
+    minDisplay.textContent = min;
+    maxDisplay.textContent = max;
+  });
+</script>
+<style>
+    /* Customize track and handle */
+    .noUi-connect {
+      background: #f78bc7 !important; /* Pink */
+    }
+  
+    .noUi-handle {
+      border: none;
+      background-color: #f24b9b !important; /* Bright pink handle */
+      box-shadow: none;
+      width: 12px;       /* Adjust width */
+      height: 12px;      /* Reduced height */
+      border-radius: 100%;
+      top: -5px;         /* Adjust to vertically center it */
+      cursor: grab;
+    }
+    
+  
+    .noUi-target {
+      border: none;
+      height: 8px;
+      background: #fcd6e8; /* Light pink base */
+      border-radius: 8px;
+    }
+  </style>
+{% endblock %}  
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Navbar Styles */
+.navbar {
+    background: linear-gradient(to right, rgba(190, 128, 184, 0.334), rgb(98, 55, 91), rgb(105, 24, 74)); /* Peach gradient */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for better depth */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.dropdown-menu a:hover {
+    background-color: #f8f9fa;
+}
+
+.search-input {
+    width: 100%;
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+}
+
+.custom-dropdown .dropdown-toggle::after {
+    display: none;
+}
+
+/* Button Styles */
+.btn-pink {
+    background-color: rgb(26, 211, 155);
+    border-color: rgb(247, 89, 162);
+}
+
+.btn-pink:hover {
+    background-color: rgb(13, 203, 177);
+    border-color: rgb(240, 69, 129);
+}
+
+/* Button Styles - Generic */
+.btn {
+    background-color: #4c0ccd;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+/* Custom responsive styles */
+@media (max-width: 768px) {
+    .navbar-collapse {
+        text-align: center;
+    }
+
+    .search-input {
+        margin-bottom: 1rem;
+    }
+
+    .nav-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+
+    .search-input {
+        width: 80%;
+    }
+
+    .navbar .navbar-nav {
+        margin-top: 1rem;
+    }
+
+    .dropdown-menu {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Footer Styles */
+footer {
+    background-color: rgb(247, 230, 237);
+    padding: 30px 0;
+}
+
+.footer-links {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.footer-links a {
+    margin: 0 15px;
+    color: #333;
+    text-decoration: none;
+}
+
+.footer-links a:hover {
+    color: #e83e8c;
+}
+
+.footer-social-icons {
+    text-align: center;
+}
+
+.footer-social-icons i {
+    margin: 0 10px;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.footer-social-icons i:hover {
+    color: #e83e8c;
+}
+
+/* Hero Section */
+.hero {
+    background-image: url('hero.jpg');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    text-align: center;
+    padding: 100px 20px;
+}
+
+.hero-content h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.hero-content p {
+    font-size: 24px;
+    margin-bottom: 30px;
+}
+
+/* Featured Products */
+.featured-products {
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.featured-products h2 {
+    font-size: 36px;
+    margin-bottom: 40px;
+}
+
+.product-grid {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.product-card {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    width: 200px;
+    text-align: center;
+}
+
+.product-card img {
+    max-width: 100%;
+    border-radius: 10px;
+}
+
+/* Box-Link Styles */
+.box-link {
+    border: 2px solid #000;
+    padding: 8px 15px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    transition: all 0.3s ease-in-out;
+}
+
+.box-link:hover {
+    background-color: #e0e0e0;
+    cursor: pointer;
+}
+
+/* Star Rating Styles */
+.star-rating .star {
+    cursor: pointer; /* Makes the star clickable */
+}
+
+.carousel-img {
+    height: 500px;
+    object-fit: cover;
+  }
+  
+  .category-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    height: 100%;
+  }
+  
+  .category-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(232,62,140,0.2);
+  }
+  
+  .category-img {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  
+  .category-card:hover .category-img {
+    transform: scale(1.05);
+  }
+  
+  .category-title {
+    background: rgba(255,255,255,0.9);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 15px;
+    text-align: center;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .section-heading {
+    position: relative ;
+    margin-bottom: 4rem;
+    text-align: center;
+  }
+  
+  .section-heading:after {
+    content: "";
+    display: block;
+    width: 80px;
+    height: 3px;
+    background: #e83e8c;
+    margin: 15px auto;
+  }

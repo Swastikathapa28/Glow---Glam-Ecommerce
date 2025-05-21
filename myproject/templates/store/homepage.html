@@ -102,6 +102,660 @@
     /* Product Cards */
     .product-card {
         border: none;
+        border-radius: 1.2rem;
+        height:100;
+        overflow: hidden;
+        background: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+    
+    .product-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+    
+    .product-card .position-relative {
+        position: relative;
+        width: 100%;
+        padding-top: 100%; /* 1:1 aspect ratio */
+        overflow: hidden;
+    }
+
+    .product-card .product-img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .product-card:hover .product-img {
+        transform: scale(1.05);
+    }
+    
+    .product-card .p-3 {
+        height: auto;
+        min-height: 150px; /* You can adjust this as needed */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .product-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: var(--gold);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .product-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .product-price {
+        font-weight: 700;
+        color: var(--dark-pink);
+    }
+    
+    .original-price {
+        text-decoration: line-through;
+        color: #999;
+        font-size: 0.9rem;
+    }
+    
+    /* Brand Cards */
+    .brand-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 120px;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .brand-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .brand-img {
+        max-height: 80px;
+        max-width: 100%;
+        object-fit: contain;
+    }
+    
+    /* Sections */
+    .section-title {
+        font-weight: 700;
+        color: var(--dark-pink);
+        margin-bottom: 2rem;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .section-title:after {
+        content: '';
+        position: absolute;
+        width: 50%;
+        height: 3px;
+        background: var(--gold);
+        bottom: -12px;
+        left: 0;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-banner {
+            height: 50vh;
+        }
+        
+        .hero-content {
+            padding: 2rem;
+        }
+        
+        .hero-title {
+            font-size: 2rem;
+        }
+    }
+    
+    /* Toast notification styling */
+    .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        color: white;
+        background-color: var(--dark-pink);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .toast-notification.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    
+    .toast-notification.error {
+        background-color: #dc3545;
+    }
+    
+    /* Bounce animation for cart count */
+    .animate-bounce {
+        animation: bounce 0.5s;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.3); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<section class="hero-banner">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">Radiant Skin Starts Here</h1>
+            <p class="hero-subtitle">Discover our premium skincare collection formulated for your unique glow</p>
+            <a href="{% url 'store:search_results' %}" class="btn btn-pink">Shop Now</a>
+            <p class="mt-3 small">Use code <strong>GLOW20</strong> for 20% off first purchase</p>
+        </div>
+    </div>
+</section>
+
+<!-- Shop by Skin Type/Concern -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">Shop by Your Skin Concern</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'store:shop_by_concern' concern='acne' %}" class="text-decoration-none">
+                    <div class="concern-card">
+                        <img src="{% static 'images/acne.jpg' %}" 
+                             alt="Acne Solutions" class="concern-img">
+                        <div class="concern-overlay">
+                            <h4>Acne Solutions</h4>
+                            <p class="mb-0">Clear, blemish-free skin</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'store:shop_by_concern' concern='sensitive' %}" class="text-decoration-none">
+                    <div class="concern-card">
+                        <img src="{% static 'images/sensitive.jpg' %}"
+                             alt="Sensitive Skin" class="concern-img">
+                        <div class="concern-overlay">
+                            <h4>Sensitive Skin</h4>
+                            <p class="mb-0">Gentle, soothing formulas</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'store:shop_by_concern' concern='dry' %}" class="text-decoration-none">
+                    <div class="concern-card">
+                        <img src="{% static 'images/dry.jpg' %}"
+                             alt="Dry Skin" class="concern-img">
+                        <div class="concern-overlay">
+                            <h4>Dry Skin</h4>
+                            <p class="mb-0">Hydration & nourishment</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'store:shop_by_concern' concern='oily' %}" class="text-decoration-none">
+                    <div class="concern-card">
+                        <img src="{% static 'images/oily.jpg' %}"
+                             alt="Oily Skin" class="concern-img">
+                        <div class="concern-overlay">
+                            <h4>Oily Skin</h4>
+                            <p class="mb-0">Non-sticky, matte glow</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'store:shop_by_concern' concern='normal' %}" class="text-decoration-none">
+                    <div class="concern-card">
+                        <img src="{% static 'images/normal.jpg' %}" 
+                             alt="Normal Skin" class="concern-img">
+                        <div class="concern-overlay">
+                            <h4>Normal Skin</h4>
+                            <p class="mb-0">Even skin tone</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'store:shop_by_concern' concern='combination' %}" class="text-decoration-none">
+                    <div class="concern-card">
+                        <img src="{% static 'images/combinations.jpg' %}"
+                             alt="Combination Skin" class="concern-img">
+                        <div class="concern-overlay">
+                            <h4>Combination Skin</h4>
+                            <p class="mb-0">Brighten & refresh</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Bestselling Products -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="section-title mb-5">Bestselling Products</h2>
+        <div class="row">
+            {% for product in bestsellers %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="product-card">
+                    <div class="position-relative overflow-hidden">
+                        <a href="{% url 'store:product_detail' product.id %}">
+                            <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'store/images/default.png' %}{% endif %}" 
+                                 alt="{{ product.name }}" class="img-fluid product-img w-100">
+                        </a>
+                        {% if product.discount_percent %}
+                        <span class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 fw-bold" 
+                              style="font-size: 0.8rem; border-bottom-right-radius: 5px;">
+                            {{ product.discount_percent }}% OFF
+                        </span>
+                        {% endif %}
+                        
+                        <span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 fw-bold" 
+                              style="font-size: 0.7rem; border-bottom-left-radius: 5px;">
+                            Bestseller
+                        </span>
+                    </div>
+                    <div class="p-3">
+                        <h5 class="product-title">{{ product.name|truncatechars:40 }}</h5>
+                        <div class="mb-2">
+                            <span class="text-warning">★ {{ product.average_rating|default:"0" }}</span> 
+                            <small>({{ product.review_count }})</small>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                {% if product.discount_price %}
+                                    <span class="product-price">Rs.{{ product.discount_price }}</span>
+                                    <span class="original-price ms-2">Rs.{{ product.original_price }}</span>
+                                {% else %}
+                                    <span class="product-price">Rs.{{ product.original_price }}</span>
+                                {% endif %}
+                            </div>
+                               <button type="button" 
+                                 class="btn btn-sm btn-pink add-to-cart-btn" 
+                                 data-product-id="{{ product.id }}">
+                                 <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <h4 class="text-muted">No bestselling products available</h4>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Top Brands -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">Our Top Brands</h2>
+        <div class="row">
+            <div class="col-md-2 col-4 mb-4">
+                <div class="brand-card">
+                    <img src="{% static 'images/ordinary.png' %}" alt="The Ordinary" class="brand-img">
+                </div>
+            </div>
+            <div class="col-md-2 col-4 mb-4">
+                <div class="brand-card">
+                    <img src="{% static 'images/cetaphil.png' %}" alt="Cetaphil" class="brand-img">
+                </div>
+            </div>
+            <div class="col-md-2 col-4 mb-4">
+                <div class="brand-card">
+                    <img src="{% static 'images/plum.png' %}" alt="Plum" class="brand-img">
+                </div>
+            </div>
+            <div class="col-md-2 col-4 mb-4">
+                <div class="brand-card">
+                    <img src="{% static 'images/loreal.png' %}" alt="L'Oreal" class="brand-img">
+                </div>
+            </div>
+            <div class="col-md-2 col-4 mb-4">
+                <div class="brand-card">
+                    <img src="{% static 'images/cosrx.png' %}" alt="COSRX" class="brand-img">
+                </div>
+            </div>
+            <div class="col-md-2 col-4 mb-4">
+                <div class="brand-card">
+                    <img src="{% static 'images/maybelline.png' %}" alt="Maybelline" class="brand-img">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Products You May Like -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="section-title mb-5">Products You May Like</h2>
+        <div class="row">
+            {% for product in products %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="product-card">
+                    <div class="position-relative overflow-hidden" style="padding-top: 100%;">
+                        <a href="{% url 'store:product_detail' product.id %}" class="position-absolute top-0 left-0 w-100 h-100">
+                            <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'store/images/default.png' %}{% endif %}" 
+                                 alt="{{ product.name }}" 
+                                 class="img-fluid w-100 h-100 object-fit-cover">
+                        </a>
+                        
+                        {% if product.discount_percent %}
+                        <span class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 fw-bold" 
+                              style="font-size: 0.8rem; border-bottom-right-radius: 5px;">
+                            {{ product.discount_percent }}% OFF
+                        </span>
+                        {% endif %}
+                        
+                        {% if product.is_bestseller %}
+                        <span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 fw-bold" 
+                              style="font-size: 0.7rem; border-bottom-left-radius: 5px;">
+                            Bestseller
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="p-3">
+                        <h5 class="product-title mb-1">{{ product.name|truncatechars:40 }}</h5>
+                        
+                        <div class="mb-2">
+                            <span class="text-warning">★ {{ product.average_rating|default:"0" }}</span> 
+                            <small>({{ product.review_count }})</small>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                {% if product.discount_price %}
+                                    <span class="product-price">Rs.{{ product.discount_price }}</span>
+                                    <span class="original-price ms-2">Rs.{{ product.original_price }}</span>
+                                {% else %}
+                                    <span class="product-price">Rs.{{ product.original_price }}</span>
+                                {% endif %}
+                            </div>
+                            <button type="button" 
+                                class="btn btn-sm btn-pink add-to-cart-btn" 
+                                 data-product-id="{{ product.id }}">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <h4 class="text-muted">No recommended products available</h4>
+                <p>Check back soon for personalized recommendations!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Value Proposition -->
+<section class="py-5  mt-2">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-4">
+                <div class="p-3">
+                    <i class="fas fa-truck fa-2x mb-3" style="color: var(--dark-pink);"></i>
+                    <h5>Free Shipping</h5>
+                    <p class="small">On orders over Rs.500</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="p-3">
+                    <i class="fas fa-leaf fa-2x mb-3" style="color: var(--dark-pink);"></i>
+                    <h5>Cruelty-Free</h5>
+                    <p class="small">Never tested on animals</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="p-3">
+                    <i class="fas fa-check-circle fa-2x mb-3" style="color: var(--dark-pink);"></i>
+                    <h5>Dermatologist Approved</h5>
+                    <p class="small">Safe for all skin types</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="p-3">
+                    <i class="fas fa-undo fa-2x mb-3" style="color: var(--dark-pink);"></i>
+                    <h5>30-Day Returns</h5>
+                    <p class="small">Hassle-free returns</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const cartButtons = document.querySelectorAll('.add-to-cart-btn');
+    const isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
+    const loginUrl = "{% url 'store:login' %}";
+    // Add to Cart Functionality
+    cartButtons.forEach(button => {
+        button.addEventListener('click', function () {
+             if (!isAuthenticated) {
+                showToast('Please log in first to add items to your cart.', 'error');
+                setTimeout(() => {
+                    window.location.href = loginUrl;
+                }, 2000);
+                return;
+            }
+            const productId = this.dataset.productId;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const url = `{% url 'store:add_to_cart' 0 %}`.replace('0', productId);
+
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+            this.disabled = true;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({ quantity: 1 }),
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    this.innerHTML = '<i class="fas fa-check"></i> Added!';
+                    showToast('Product added to cart!');
+                    updateCartCount(data.cart_total);
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error';
+                showToast(error.message || 'Could not add to cart', 'error');
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                    this.disabled = false;
+                }, 1500);
+            });
+        });
+    });
+
+    // Update Cart Count Function
+    function updateCartCount(count) {
+        const cartCountElements = document.querySelectorAll('.cart-count');
+        cartCountElements.forEach(element => {
+            element.textContent = count;
+            element.classList.add('animate-bounce');
+            setTimeout(() => element.classList.remove('animate-bounce'), 500);
+        });
+    }
+
+    // Toast Notification Function
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+});
+</script>
+{% endblock %}
+
+
+{% comment %} {% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}Home - Glow & Glam{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-pink: #FFD6E0;
+        --secondary-pink: #D8A1B8;
+        --dark-pink: #B76E8E;
+        --cream: #FFF9F5;
+        --charcoal: #333333;
+        --gold: #E8C3A2;
+    }
+    
+    /* Hero Banner */
+    .hero-banner {
+        background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.7)), 
+                    url('https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+        background-size: cover;
+        background-position: center;
+        height: 70vh;
+        display: flex;
+        align-items: center;
+    }
+    
+    .hero-content {
+        max-width: 600px;
+        background-color: rgba(255,255,255,0.85);
+        padding: 3rem;
+        border-radius: 15px;
+    }
+    
+    .hero-title {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--dark-pink);
+        margin-bottom: 1rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+    }
+    
+    /* Buttons */
+    .btn-pink {
+        background-color: var(--dark-pink);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-pink:hover {
+        background-color: var(--secondary-pink);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(183, 110, 142, 0.3);
+    }
+    
+    /* New Card Styles */
+    .concern-card {
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+        height: 200px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .concern-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .concern-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .concern-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(183, 110, 142, 0.3);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    /* Product Cards */
+    .product-card {
+        border: none;
         border-radius: 15px;
         overflow: hidden;
         background: white;
@@ -210,6 +864,39 @@
             font-size: 2rem;
         }
     }
+    /* Toast notification styling */
+    .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        color: white;
+        background-color: var(--dark-pink);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .toast-notification.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    
+    .toast-notification.error {
+        background-color: #dc3545;
+    }
+    
+    /* Bounce animation for cart count */
+    .animate-bounce {
+        animation: bounce 0.5s;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.3); }
 </style>
 {% endblock %}
 
@@ -406,62 +1093,7 @@
         </div>
     </div>
 </section>
-{% comment %} 
-<!-- Products You May Like -->
-<section class="py-5 bg-white">
-    <div class="container">
-        <h2 class="section-title mb-5">Products You May Like</h2>
-        <div class="row">
-            {% for product in products %}
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="product-card">
-                    <div class="position-relative overflow-hidden">
-                        <a href="{% url 'store:product_detail' product.id %}">
-                            <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'store/images/default.png' %}{% endif %}" 
-                                 alt="{{ product.name }}" class="img-fluid product-img w-100">
-                        </a> 
-                        {% if product.discount_percent %}
-                        <span class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 small" style="z-index: 2;">
-                            -{{ product.discount_percent }}%
-                        </span>
-                        {% endif %}
 
-                        {% if product.is_bestseller %}
-                            <span class="product-badge">Bestseller</span>
-                        {% endif %}
-                    </div>
-                    <div class="p-3">
-                        <h5 class="product-title">{{ product.name }}</h5>
-                        <div class="mb-2">
-                            <span class="text-warning">★ {{ product.average_rating|default:"0" }}</span> 
-                            <small>({{ product.review_count }})</small>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                {% if product.discount_price %}
-                                    <span class="product-price">Rs.{{ product.discount_price }}</span>
-                                    <span class="original-price ms-2">Rs.{{ product.original_price }}</span>
-                                {% else %}
-                                    <span class="product-price">Rs.{{ product.original_price }}</span>
-                                {% endif %}
-                            </div>
-                            <form action="{% url 'store:add_to_cart' product.id %}" method="post">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-pink">Add to Cart</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="col-12 text-center py-5">
-                <h4 class="text-muted">No recommended products available</h4>
-                <p>Check back soon for personalized recommendations!</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</section> {% endcomment %}
 <!-- Products You May Like -->
 <section class="py-5 bg-white">
     <div class="container">
@@ -572,7 +1204,7 @@
 <section class="py-5" style="background-color: var(--primary-pink);">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-md-6 mb-4 mb-md-0">
+            <div class="col-md-6 mb-2 mb-md-0">
                 <h3 class="mb-3">Join Our Beauty Community</h3>
                 <p class="mb-0">Subscribe to get exclusive offers, skincare tips, and early access to new products.</p>
             </div>
@@ -590,35 +1222,88 @@
 
 {% block extra_js %}
 <script>
-    // Simple cart counter functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const addToCartButtons = document.querySelectorAll('.btn-pink[type="submit"]');
-        const cartCount = document.querySelector('.cart-count');
-        
-        addToCartButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                // Animation for visual feedback
-                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
-                setTimeout(() => {
-                    this.innerHTML = 'Added!';
-                    setTimeout(() => {
-                        this.innerHTML = 'Add to Cart';
-                    }, 1000);
-                }, 500);
-                
-                // Update cart count if element exists
-                if (cartCount) {
-                    let currentCount = parseInt(cartCount.textContent) || 0;
-                    cartCount.textContent = currentCount + 1;
-                    
-                    // Animation for cart count
-                    cartCount.style.transform = 'scale(1.5)';
-                    setTimeout(() => {
-                        cartCount.style.transform = 'scale(1)';
-                    }, 300);
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartButtons = document.querySelectorAll('.btn-pink[type="submit"]');
+    
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            const form = this.closest('form');
+            const originalText = this.innerHTML;
+            
+            // Show loading state
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            this.disabled = true;
+            
+            // Get the form data
+            const formData = new FormData(form);
+            
+            // Send the AJAX request
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.innerHTML = '<i class="fas fa-check"></i> Added!';
+                    
+                    // Update cart count display if element exists
+                    const cartCount = document.querySelector('.cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = data.cart_total || 0;
+                        // Animation
+                        cartCount.classList.add('animate-bounce');
+                        setTimeout(() => {
+                            cartCount.classList.remove('animate-bounce');
+                        }, 1000);
+                    }
+                    
+                    // Show success notification
+                    showToast('Product added to cart!');
+                } else {
+                    this.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error';
+                    showToast(data.error || 'Failed to add to cart', 'error');
+                }
+            })
+            .catch(error => {
+                this.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error';
+                showToast('Network error occurred', 'error');
+                console.error('Error:', error);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                }, 1500);
             });
         });
     });
+    
+    // Toast notification function
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+});
 </script>
-{% endblock %}
+
+{% endblock %} {% endcomment %}

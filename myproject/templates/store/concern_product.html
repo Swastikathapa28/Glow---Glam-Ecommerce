@@ -1,27 +1,152 @@
 
-{% extends 'store/base.html' %}
+{% extends 'store/homepage.html' %}  <!-- Change this to your base template -->
+{% load static %}
+
 {% block content %}
 <section class="py-5">
     <div class="container">
         <h2 class="mb-4 text-center">Products for {{ concern }}</h2>
         <div class="row">
-            {% for product in products %}
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ product.name }}</h5>
-                            <p class="card-text">{{ product.short_description }}</p>
-                            <a href="{% url 'store:product_detail' product.id %}" class="btn btn-primary">View Product</a>
+             {% for product in products %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="product-card">
+                    <div class="position-relative overflow-hidden" style="padding-top: 100%;"> <!-- Square aspect ratio -->
+                        <a href="{% url 'store:product_detail' product.id %}" class="position-absolute top-0 left-0 w-100 h-100">
+                            <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'store/images/default.png' %}{% endif %}" 
+                                 alt="{{ product.name }}" 
+                                 class="img-fluid w-100 h-100 object-fit-cover"> <!-- Fill container -->
+                        </a>
+                        
+                        <!-- Discount badge - top left -->
+                        {% if product.discount_percent %}
+                        <span class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 fw-bold" 
+                              style="font-size: 0.8rem; border-bottom-right-radius: 5px;">
+                            {{ product.discount_percent }}% OFF
+                        </span>
+                        {% endif %}
+                        
+                        <!-- Bestseller badge - top right -->
+                        {% if product.is_bestseller %}
+                        <span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 fw-bold" 
+                              style="font-size: 0.7rem; border-bottom-left-radius: 5px;">
+                            Bestseller
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="p-3">
+                        <h5 class="product-title mb-1">{{ product.name|truncatechars:30 }}</h5>
+                        
+                        <div class="mb-2">
+                            <span class="text-warning">★ {{ product.average_rating|default:"0" }}</span> 
+                            <small>({{ product.review_count }})</small>
+                            
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                {% if product.discount_price %}
+                                    <span class="product-price">Rs.{{ product.discount_price }}</span>
+                                    <span class="original-price ms-2">Rs.{{ product.original_price }}</span>
+                                {% else %}
+                                    <span class="product-price">Rs.{{ product.original_price }}</span>
+                                {% endif %}
+                            </div>
+                            
+                                <button type="button" 
+                                class="btn btn-sm btn-pink add-to-cart-btn" 
+                                 data-product-id="{{ product.id }}">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
+            </div>
             {% empty %}
-                <div class="col-12 text-center">
-                    <p>No products found for {{ concern }}.</p>
-                </div>
+            <div class="col-12 text-center py-5">
+                <h4 class="text-muted">No products found for {{ concern }}</h4>
+                <p>Check back soon for new arrivals!</p>
+            </div>
             {% endfor %}
         </div>
     </div>
 </section>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const cartButtons = document.querySelectorAll('.add-to-cart-btn');
+
+    // Add to Cart Functionality
+    cartButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const productId = this.dataset.productId;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const url = `{% url 'store:add_to_cart' 0 %}`.replace('0', productId);
+
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+            this.disabled = true;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({ quantity: 1 }),
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    this.innerHTML = '<i class="fas fa-check"></i> Added!';
+                    showToast('Product added to cart!');
+                    updateCartCount(data.cart_total);
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error';
+                showToast(error.message || 'Could not add to cart', 'error');
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                    this.disabled = false;
+                }, 1500);
+            });
+        });
+    });
+
+    // Update Cart Count Function
+    function updateCartCount(count) {
+        const cartCountElements = document.querySelectorAll('.cart-count');
+        cartCountElements.forEach(element => {
+            element.textContent = count;
+            element.classList.add('animate-bounce');
+            setTimeout(() => element.classList.remove('animate-bounce'), 500);
+        });
+    }
+
+    // Toast Notification Function
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+});
+</script>
 {% endblock %}

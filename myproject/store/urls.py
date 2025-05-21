@@ -18,11 +18,8 @@ urlpatterns = [
     path('cart/remove/<int:cart_item_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('cart/update/<int:cart_item_id>/', views.update_cart_item, name='update_cart_item'),
     path('profile/',views.profile,name='profile'),
-    path('checkout/', views.checkout, name='checkout'),
-    path('order_success/', views.order_success, name='order_success'),
-    
+    # path('checkout/', views.checkout, name='checkout'),
     path('search/', views.search_results, name='search_results'), 
-    path('order/', views.order, name='order'),
     path('about_us/', views.about_us, name='about_us'),
     path('contact_us/', views.contact_us, name='contact_us'),
     path('terms/', views.terms_condition, name='terms_condition'),
