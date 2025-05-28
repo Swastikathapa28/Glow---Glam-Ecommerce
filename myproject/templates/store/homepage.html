@@ -581,7 +581,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
             const productId = this.dataset.productId;
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             const url = `{% url 'store:add_to_cart' 0 %}`.replace('0', productId);
 
             const originalHTML = this.innerHTML;
