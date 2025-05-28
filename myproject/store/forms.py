@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from .models import CustomUser
 from django.contrib.auth.models import User
 from .models import Review
+from django.core.validators import RegexValidator
 
 
 class RegisterrForm(forms.ModelForm):
@@ -59,3 +60,50 @@ class ForgetPasswordForm(forms.Form):
         }),
         required=True,
     )
+
+CITY_CHOICES = [
+    ('kathmandu', 'Kathmandu'),
+    ('bhaktapur', 'Bhaktapur'),
+    ('lalitpur', 'Lalitpur'),
+]
+
+class CheckoutForm(forms.Form):
+    receipt_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    
+    phone = forms.CharField(
+        max_length=10,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{10}$',
+                message='Phone number must be exactly 10 digits.',
+                code='invalid_phone'
+            )
+        ],
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 10 digit phone number'
+        })
+    )
+    
+    address = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3
+        })
+    )
+    
+    city = forms.ChoiceField(
+        choices=CITY_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if not phone.isdigit():
+            raise forms.ValidationError("Phone number must contain only digits.")
+        if len(phone) != 10:
+            raise forms.ValidationError("Phone number must be exactly 10 digits.")
+        return phone

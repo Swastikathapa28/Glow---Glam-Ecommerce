@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 from django.http import JsonResponse
 from .forms import RegisterrForm,ReviewForm,LoginForm,ForgetPasswordForm
 from django.conf import settings
-from .models import Product,CustomUser,Review,CartItem,Cart,Category
+from .models import Product,CustomUser,Review,CartItem,Cart,Category, Order, OrderItem
 import random
 import json
 import uuid
@@ -278,8 +278,8 @@ def view_cart(request):
 
     return render(request, 'store/view_cart.html', context)
 
-@login_required(login_url='store:login')  # Ensure the user is logged in
-@csrf_exempt  # Exempt CSRF protection (use only if necessary)
+@login_required(login_url='store:login')
+@csrf_exempt
 def add_to_cart(request, product_id):
     if request.method == 'POST':
         try:
@@ -309,12 +309,14 @@ def add_to_cart(request, product_id):
             # Save the cart item
             cart_item.save()
 
-            # Reduce the product quantity in the database
-            product.quantity -= quantity
-            product.save()
+            # Calculate total items in cart
+            cart_total = sum(item.quantity for item in cart.items.all())
 
-            # Return a success response
-            return JsonResponse({'success': True})
+            # Return a success response with cart total
+            return JsonResponse({
+                'success': True,
+                'cart_total': cart_total
+            })
         except Exception as e:
             # Return an error response if something goes wrong
             return JsonResponse({'success': False, 'error': str(e)})
@@ -547,4 +549,74 @@ def shop_by_concern(request, concern):
     return render(request, 'store/concern_product.html', {
         'products': products,
         'concern': concern.capitalize()
+    })
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Order, OrderItem
+from .forms import CheckoutForm
+ # adjust path if needed
+
+
+@login_required
+def checkout_view(request):
+    # Get the user's cart from the database
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        form = CheckoutForm(request.POST)
+        if form.is_valid():
+            try:
+                order = Order.objects.create(
+                    user=request.user,
+                    receipt_name=form.cleaned_data['receipt_name'],
+                    phone=form.cleaned_data['phone'],
+                    address=form.cleaned_data['address'],
+                    city=form.cleaned_data['city']
+                )
+                
+                # Create order items from cart items
+                for cart_item in cart.items.all():
+                    OrderItem.objects.create(
+                        order=order,
+                        product=cart_item.product,
+                        quantity=cart_item.quantity,
+                        price=cart_item.product.discount_price or cart_item.product.original_price
+                    )
+                
+                # Clear the cart after order is created
+                cart.items.all().delete()
+                
+                messages.success(request, 'Your order has been placed successfully!')
+                return redirect('store:order_process', order_id=order.id)
+            except Exception as e:
+                messages.error(request, f'Error creating order: {str(e)}')
+                return redirect('store:checkout')
+    else:
+        form = CheckoutForm()
+
+    # Get shipping charge from settings or use default
+    shipping_charge = getattr(settings, 'SHIPPING_CHARGE', 100)
+
+    return render(request, 'store/checkout.html', {
+        'form': form,
+        'cart': cart,
+        'shipping_charge': shipping_charge,
+    })
+
+@login_required
+def order_process_view(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    return render(request, 'store/order_process.html', {'order': order})
+
+@login_required
+def order_history_view(request):
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'store/order_history.html', {'orders': orders})
+
+@login_required
+def order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    return render(request, 'store/order_detail.html', {
+        'order': order,
+        'order_items': order.items.all(),
     })

@@ -225,7 +225,7 @@
             <div class="price-section">
                 {% if product.discount_price < product.original_price %}
                     <div class="d-flex align-items-center">
-                        <span class="original-price me-2">Rs. {{ product.original_price }}</span>
+                        <span class="original-price text-decoration-line-through me-2">Rs. {{ product.original_price }}</span>
                         <span class="discount-price me-2">Rs. {{ product.discount_price }}</span>
                         <span class="discount-badge badge rounded-pill">
                             Save {{ product.discount_percent }}%
@@ -246,8 +246,8 @@
 
             <div class="d-grid gap-2 d-md-block">
                 {% if product.is_in_stock %}
-                    <button class="add-to-cart-btn" id="add-to-cart-btn">
-                        <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+                    <button class="add-to-cart-btn" id="add-to-cart-btn" data-product-id="{{ product.id }}">
+                        <i class="fas fa-shopping-cart me-2" ></i> Add to Cart
                     </button>
                 {% else %}
                     <button class="out-of-stock-btn" disabled>
@@ -497,6 +497,7 @@
         .then(data => {
             if (data.success) {
                 // Show success message
+                showNotification('Product added to cart successfully!');
                 const btn = document.getElementById('add-to-cart-btn');
                 btn.innerHTML = '<i class="fas fa-check-circle me-2"></i> Added to Cart';
                 btn.classList.add('btn-success');
@@ -529,6 +530,7 @@
         });
     });
 
+    
     // Add to Cart for Related Products
     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
         button.addEventListener('click', function(e) {

@@ -103,6 +103,62 @@
     .status-delivering { background: #d4edda; color: #155724; }
     .status-delivered { background: #d1e7dd; color: #0f5132; }
 
+    .order-progress {
+        margin: 2rem 0;
+        padding: 2rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin-top: 2rem;
+    }
+
+    .progress-steps::before {
+        content: '';
+        position: absolute;
+        top: 25px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: #dee2e6;
+        z-index: 1;
+    }
+
+    .step {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        width: 25%;
+    }
+
+    .step-icon {
+        width: 50px;
+        height: 50px;
+        background: #fff;
+        border: 2px solid #dee2e6;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    .step.active .step-icon {
+        background: #8B6B61;
+        border-color: #8B6B61;
+        color: #fff;
+    }
+
+    .step.completed .step-icon {
+        background: #28a745;
+        border-color: #28a745;
+        color: #fff;
+    }
+
     @media (max-width: 768px) {
         .order-info-grid {
             grid-template-columns: 1fr;
@@ -117,6 +173,30 @@
             width: 60px;
             height: 60px;
         }
+
+        .progress-steps {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2rem;
+        }
+
+        .progress-steps::before {
+            width: 2px;
+            height: 100%;
+            left: 25px;
+            top: 0;
+        }
+
+        .step {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .step-icon {
+            margin: 0;
+        }
     }
 </style>
 {% endblock %}
@@ -130,6 +210,36 @@
         </div>
         <div class="status-badge status-{{ order.status|lower }}">
             {{ order.status }}
+        </div>
+    </div>
+
+    <div class="order-progress">
+        <h3>Order Progress</h3>
+        <div class="progress-steps">
+            <div class="step {% if order.status == 'pending' or order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}completed{% endif %}">
+                <div class="step-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <span>Order Placed</span>
+            </div>
+            <div class="step {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}completed{% elif order.status == 'pending' %}active{% endif %}">
+                <div class="step-icon">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <span>Processing</span>
+            </div>
+            <div class="step {% if order.status == 'shipped' or order.status == 'delivered' %}completed{% elif order.status == 'processing' %}active{% endif %}">
+                <div class="step-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <span>Shipped</span>
+            </div>
+            <div class="step {% if order.status == 'delivered' %}completed{% elif order.status == 'shipped' %}active{% endif %}">
+                <div class="step-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <span>Delivered</span>
+            </div>
         </div>
     </div>
 
@@ -169,7 +279,7 @@
 
     <div class="order-items">
         <h3>Order Items</h3>
-        {% for item in order_items %}
+        {% for item in order.items.all %}
         <div class="item-card">
             <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="item-image">
             <div class="item-details">
@@ -195,25 +305,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.getElementById('confirmReorder').addEventListener('click', function() {
-    const clearCart = document.getElementById('clearCart').checked;
-    
-    fetch(`{% url 'store:reorder' order.pk %}?clear=${clearCart}`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if(data.success) {
-            window.location.href = '{% url "store:view_cart" %}';
-        }
-    });
-});
-</script>
 {% endblock %}

@@ -1,168 +1,114 @@
 {% extends 'store/base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/checkout.css' %}">
+{% endblock %}
+
 {% block content %}
-<section class="checkout-section py-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-7">
-                <h2 class="mb-4">Checkout Details</h2>
-                <div class="checkout-steps mb-5">
-                    <div class="step active">1. Shipping Details</div>
-                    <div class="step">2. Order Review</div>
-                    <div class="step">3. Complete Order</div>
-                </div>
+<div class="checkout-container">
+    <h2 class="checkout-title"> Checkout</h2>
+    
+    {% if messages %}
+    {% for message in messages %}
+    <div class="success-message">
+        <i class="fas fa-check-circle"></i>
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    
+    <div class="checkout-grid">
+        <div class="form-section">
+            <h3>Shipping Information</h3>
+            <form method="post" class="checkout-form" id="checkout-form">
+                {% csrf_token %}
                 
-                <form method="post" class="needs-validation" novalidate>
-                    {% csrf_token %}
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="firstName" class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="firstName" name="first_name" 
-                                   value="{{ form.first_name.value|default:'' }}" required>
-                            <div class="invalid-feedback">
-                                Valid first name is required.
-                            </div>
-                        </div>
+                <div class="form-group">
+                    <label for="{{ form.receipt_name.id_for_label }}">Full Name</label>
+                    {{ form.receipt_name }}
+                    {% if form.receipt_name.errors %}
+                    <div class="error-message">{{ form.receipt_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
 
-                        <div class="col-md-6">
-                            <label for="lastName" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="lastName" name="last_name"
-                                   value="{{ form.last_name.value|default:'' }}" required>
-                            <div class="invalid-feedback">
-                                Valid last name is required.
-                            </div>
-                        </div>
+                <div class="form-group">
+                    <label for="{{ form.phone.id_for_label }}">Phone Number</label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}
+                    <div class="error-message">{{ form.phone.errors.0 }}</div>
+                    {% endif %}
+                </div>
 
-                        <div class="col-12">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email"
-                                   placeholder="you@example.com" value="{{ form.email.value|default:'' }}" required>
-                            <div class="invalid-feedback">
-                                Please enter a valid email address.
-                            </div>
-                        </div>
+                <div class="form-group">
+                    <label for="{{ form.address.id_for_label }}">Delivery Address</label>
+                    {{ form.address }}
+                    {% if form.address.errors %}
+                    <div class="error-message">{{ form.address.errors.0 }}</div>
+                    {% endif %}
+                </div>
 
-                        <div class="col-12">
-                            <label for="address" class="form-label">Shipping Address</label>
-                            <textarea class="form-control" id="address" name="address" 
-                                      placeholder="Full shipping address..." required rows="3">{{ form.address.value|default:'' }}</textarea>
-                            <div class="invalid-feedback">
-                                Please enter your shipping address.
-                            </div>
-                        </div>
+                <div class="form-group">
+                    <label for="{{ form.city.id_for_label }}">City</label>
+                    {{ form.city }}
+                    {% if form.city.errors %}
+                    <div class="error-message">{{ form.city.errors.0 }}</div>
+                    {% endif %}
+                </div>
 
-                        <div class="col-md-4">
-                            <label for="city" class="form-label">City</label>
-                            <input type="text" class="form-control" id="city" name="city" required
-                                   value="{{ form.city.value|default:'' }}">
-                            <div class="invalid-feedback">
-                                Please provide a valid city.
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label for="state" class="form-label">State</label>
-                            <select class="form-select" id="state" name="state" required>
-                                <option value="">Choose...</option>
-                                <option>Maharashtra</option>
-                                <option>Delhi</option>
-                                <option>Karnataka</option>
-                                <!-- Add more states -->
-                            </select>
-                            <div class="invalid-feedback">
-                                Please select a valid state.
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label for="zip" class="form-label">Zip Code</label>
-                            <input type="text" class="form-control" id="zip" name="zip_code" 
-                                   value="{{ form.zip_code.value|default:'' }}" required>
-                            <div class="invalid-feedback">
-                                Zip code required.
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="save-info" name="save_info">
-                        <label class="form-check-label" for="save-info">Save this information for next time</label>
-                    </div>
-
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="terms" required>
-                        <label class="form-check-label" for="terms">
-                            I agree to the <a href="#">terms of service</a>
-                        </label>
-                    </div>
-
-                    <button class="btn btn-pink btn-lg w-100 mt-4" type="submit">
-                        Place Order (Cash on Delivery)
-                    </button>
-                </form>
-            </div>
-
-            <div class="col-lg-5">
-                <div class="order-summary p-4 shadow-sm">
-                    <h4 class="mb-4">Your Order</h4>
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            {% for item in cart_items %}
-                            <div class="row g-3 mb-3">
-                                <div class="col-3">
-                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
-                                         class="img-fluid rounded">
-                                </div>
-                                <div class="col-9">
-                                    <h6 class="mb-1">{{ item.product.name }}</h6>
-                                    <small class="text-muted">Qty: {{ item.quantity }}</small>
-                                    <div class="mt-2">
-                                        <span class="fw-bold">Rs. {{ item.total_price }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <hr>
-                            {% endfor %}
-                            
-                            <div class="row">
-                                <div class="col-6">
-                                    Subtotal:
-                                </div>
-                                <div class="col-6 text-end">
-                                    Rs. {{ cart_total }}
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-6">
-                                    COD Charge:
-                                </div>
-                                <div class="col-6 text-end">
-                                    Rs. 49
-                                </div>
-                            </div>
-                            
-                            <div class="row mt-3 fw-bold">
-                                <div class="col-6">
-                                    Total Payable:
-                                </div>
-                                <div class="col-6 text-end">
-                                    Rs. {{ cart_total|add:49 }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Our delivery executive will collect payment in cash when your order is delivered.
+                <div class="payment-method">
+                    <h4 class="payment-method-title">Payment Method</h4>
+                    <div class="cod-info">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>Cash on Delivery Only</span>
                     </div>
                 </div>
-            </div>
+            </form>
+        </div>
+
+        <div class="cart-summary">
+            <h3>Order Summary</h3>
+            {% if cart.items.all %}
+                {% for item in cart.items.all %}
+                <div class="cart-item">
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="product-image">
+                    <div class="product-details">
+                        <span class="product-name">{{ item.product.name }}</span>
+                        <span class="product-quantity">Quantity: {{ item.quantity }}</span>
+                    </div>
+                    <span class="product-price">Rs {{ item.total_price }}</span>
+                </div>
+                {% endfor %}
+
+                <div class="summary-totals">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span>Rs {{ cart.total_price }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping:</span>
+                        <span>Rs {{ shipping_charge }}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span>Rs {{ cart.total_price|add:shipping_charge }}</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="checkout-button" form="checkout-form">
+                    Place Order
+                </button>
+            {% else %}
+                <div class="empty-cart-message">
+                    <p>Your cart is empty. Please add items before checking out.</p>
+                    <a href="{% url 'store:home' %}" class="btn-outline">Continue Shopping</a>
+                </div>
+            {% endif %}
         </div>
     </div>
-</section>
+</div>
+
+{% block extra_js %}
+{% endblock %}
+
 {% endblock %}

@@ -1,0 +1,170 @@
+{% load static %}
+
+<!-- Top Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+        <!-- Brand -->
+        <a class="navbar-brand" href="{% url 'store:home' %}">
+            <span style="color: var(--dark-pink);">Glow & Glam</span>
+        </a>
+
+        <!-- Mobile Toggle Button -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Navbar Content -->
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <!-- Search Form -->
+            <form class="d-flex mx-auto" action="{% url 'store:search_results' %}" method="GET">
+                <div class="input-group">
+                    <input type="search" name="q" class="form-control search-input" placeholder="Search products..." aria-label="Search">
+                    <button class="btn btn-outline-pink" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Right Navigation Items -->
+            <ul class="navbar-nav ms-auto">
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'store:profile' %}">
+                            <i class="fas fa-user"></i>
+                            <span class="d-none d-lg-inline">{{ user.username }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'store:order_history' %}">
+                            <i class="fas fa-box"></i>
+                            <span class="d-none d-lg-inline">Orders</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'store:login' %}">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="d-none d-lg-inline">Login</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'store:register' %}">
+                            <i class="fas fa-user-plus"></i>
+                            <span class="d-none d-lg-inline">Register</span>
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="{% url 'store:cart' %}">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ cart.total_items|default:"0" }}
+                        </span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Category Navigation -->
+<nav class="navbar navbar-expand-lg category-navbar" style="background-color: var(--cream);">
+    <div class="container">
+        <div class="collapse navbar-collapse" id="categoryNavbar">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'store:category' 'skincare' %}">Skincare</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'store:category' 'makeup' %}">Makeup</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'store:category' 'haircare' %}">Haircare</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'store:category' 'bodycare' %}">Body Care</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'store:category' 'fragrance' %}">Fragrance</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'store:category' 'tools' %}">Tools & Accessories</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<style>
+:root {
+    --primary-pink: #FFD6E0;
+    --secondary-pink: #D8A1B8;
+    --dark-pink: #B76E8E;
+    --cream: #FFF9F5;
+    --charcoal: #333333;
+    --gold: #E8C3A2;
+}
+
+.navbar {
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.search-input {
+    border-radius: 20px 0 0 20px;
+    border: 1px solid var(--secondary-pink);
+}
+
+.btn-outline-pink {
+    color: var(--dark-pink);
+    border: 1px solid var(--secondary-pink);
+    border-radius: 0 20px 20px 0;
+}
+
+.btn-outline-pink:hover {
+    background-color: var(--dark-pink);
+    color: white;
+}
+
+.nav-link {
+    color: var(--charcoal);
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--dark-pink);
+}
+
+.cart-count {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.category-navbar .nav-link {
+    padding: 0.5rem 1.5rem;
+    color: var(--charcoal);
+    font-weight: 500;
+}
+
+.category-navbar .nav-link:hover {
+    color: var(--dark-pink);
+}
+
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        background: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .category-navbar {
+        display: none;
+    }
+}
+</style> 

@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils import timezone
@@ -149,3 +148,45 @@ class CartItem(models.Model):
     def total_price(self):
         return self.product.final_price * self.quantity
     
+
+ORDER_STATUS = [
+    ('Pending', 'Pending'),
+    ('Processing', 'Processing'),
+    ('On Delivery', 'On Delivery'),
+    ('Delivered', 'Delivered'),
+]
+
+PAYMENT_MODES = [
+    ('cod', 'Cash on Delivery'),
+]
+
+class Order(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    receipt_name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=15)
+    address = models.TextField()
+    city = models.CharField(max_length=100)
+    payment_mode = models.CharField(max_length=20, choices=PAYMENT_MODES, default='cod')
+    shipping_charge = models.PositiveIntegerField(default=100)
+    status = models.CharField(max_length=20, choices=ORDER_STATUS, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_paid = models.BooleanField(default=False)
+
+    def get_total_cost(self):
+        items_total = sum(item.get_total_price() for item in self.items.all())
+        return items_total + self.shipping_charge
+
+    def __str__(self):
+        return f'Order #{self.id} by {self.user.email}'
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)  # Store the price at time of purchase
+
+    def get_total_price(self):
+        return self.quantity * self.price
+
+    def __str__(self):
+        return f'{self.quantity} x {self.product.name}'

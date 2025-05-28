@@ -1,4 +1,3 @@
-
 from django.urls import path
 from . import views
 
@@ -18,7 +17,6 @@ urlpatterns = [
     path('cart/remove/<int:cart_item_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('cart/update/<int:cart_item_id>/', views.update_cart_item, name='update_cart_item'),
     path('profile/',views.profile,name='profile'),
-    # path('checkout/', views.checkout, name='checkout'),
     path('search/', views.search_results, name='search_results'), 
     path('about_us/', views.about_us, name='about_us'),
     path('contact_us/', views.contact_us, name='contact_us'),
@@ -29,5 +27,8 @@ urlpatterns = [
     path('edit_review/<int:review_id>/',views.edit_review,name='edit_review'),
     path('delete_review/<int:review_id>/',views.delete_review,name='delete_review'),
     path('concern/<str:concern>/', views.shop_by_concern, name='shop_by_concern'),
+    path('checkout/', views.checkout_view, name='checkout'),
+    path('order/<int:order_id>/', views.order_process_view, name='order_process'),
+    path('orders/history/', views.order_history_view, name='order_history'),
 ]
 

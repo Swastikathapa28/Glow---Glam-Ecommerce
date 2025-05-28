@@ -1,4 +1,3 @@
-
 {% extends 'store/homepage.html' %}  <!-- Change this to your base template -->
 {% load static %}
 
@@ -72,81 +71,6 @@
     </div>
 </section>
 {% endblock %}
+
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const cartButtons = document.querySelectorAll('.add-to-cart-btn');
-
-    // Add to Cart Functionality
-    cartButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const productId = this.dataset.productId;
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            const url = `{% url 'store:add_to_cart' 0 %}`.replace('0', productId);
-
-            const originalHTML = this.innerHTML;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
-            this.disabled = true;
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken,
-                },
-                body: JSON.stringify({ quantity: 1 }),
-                credentials: 'same-origin'
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    this.innerHTML = '<i class="fas fa-check"></i> Added!';
-                    showToast('Product added to cart!');
-                    updateCartCount(data.cart_total);
-                } else {
-                    throw new Error(data.error || 'Unknown error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                this.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error';
-                showToast(error.message || 'Could not add to cart', 'error');
-            })
-            .finally(() => {
-                setTimeout(() => {
-                    this.innerHTML = originalHTML;
-                    this.disabled = false;
-                }, 1500);
-            });
-        });
-    });
-
-    // Update Cart Count Function
-    function updateCartCount(count) {
-        const cartCountElements = document.querySelectorAll('.cart-count');
-        cartCountElements.forEach(element => {
-            element.textContent = count;
-            element.classList.add('animate-bounce');
-            setTimeout(() => element.classList.remove('animate-bounce'), 500);
-        });
-    }
-
-    // Toast Notification Function
-    function showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `toast-notification ${type}`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-
-        setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-});
-</script>
 {% endblock %}

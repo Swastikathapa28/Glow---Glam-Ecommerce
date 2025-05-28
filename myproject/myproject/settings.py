@@ -67,6 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'store.context_processors.cart_item_count',  # Add our custom context processor
             ],
         },
     },
@@ -149,12 +150,129 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 JAZZMIN_SETTINGS = {
+    # General settings
+    "site_title": "Glow & Glam Admin",
+    "site_header": "Glow & Glam",
+    "site_brand": "Glow & Glam",
+    "site_logo": "store/images/logo.png",
+    "login_logo": None,
+    "login_logo_dark": None,
+    "site_logo_classes": "img-circle",
+    "site_icon": None,
     
-    "site_header": "Glow $ Glam",
-    "site_brand": "Glow like roses",
-    "site_logo": "logo.png",  # Optional: Set a logo image
-      # Optional: Customize logo classes
-    "copyright": "Glow & Glam 2021",  # Optional: Set a favicon
+    # Top Menu
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "View Site", "url": "store:home", "new_window": True},
+    ],
+    
+    # UI Customizer
+    "show_ui_builder": True,
+    
+    # Theme
+    "dark_mode_theme": "darkly",
+    
+    # Custom CSS/JS
+    "custom_css": None,
+    "custom_js": None,
+    
+    # Color palette
+    "ui_tweaks": {
+        "navbar_small_text": False,
+        "footer_small_text": False,
+        "body_small_text": False,
+        "brand_small_text": False,
+        "brand_colour": "navbar-pink",
+        "accent": "accent-pink",
+        "navbar": "navbar-pink navbar-dark",
+        "no_navbar_border": True,
+        "navbar_fixed": True,
+        "layout_boxed": False,
+        "footer_fixed": False,
+        "sidebar_fixed": True,
+        "sidebar": "sidebar-dark-pink",
+        "sidebar_nav_small_text": False,
+        "sidebar_disable_expand": False,
+        "sidebar_nav_child_indent": True,
+        "sidebar_nav_compact_style": False,
+        "sidebar_nav_legacy_style": False,
+        "sidebar_nav_flat_style": False,
+        "theme": "default",
+        "dark_mode_theme": None,
+        "button_classes": {
+            "primary": "btn-primary",
+            "secondary": "btn-secondary",
+            "info": "btn-info",
+            "warning": "btn-warning",
+            "danger": "btn-danger",
+            "success": "btn-success"
+        }
+    },
+    
+    # Icons
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "users.User": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "admin.LogEntry": "fas fa-file",
+    },
+    
+    # Models Admin Customization
+    "order_with_respect_to": ["auth", "store.Category", "store.Product", "store.Order", "store.Cart"],
+    
+    # Related Modal
+    "related_modal_active": True,
+    
+    # Custom Links
+    "custom_links": {
+        "store": [{
+            "name": "View Orders", 
+            "url": "admin:store_order_changelist", 
+            "icon": "fas fa-shopping-cart",
+            "permissions": ["store.view_order"]
+        }]
+    },
+    
+    # Actions
+    "show_ui_builder": True,
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {
+        "auth.user": "collapsible",
+        "auth.group": "vertical_tabs",
+    }
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": False,
+    "accent": "accent-primary",
+    "navbar": "navbar-dark",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": False,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-outline-primary",
+        "secondary": "btn-outline-secondary",
+        "info": "btn-outline-info",
+        "warning": "btn-outline-warning",
+        "danger": "btn-outline-danger",
+        "success": "btn-outline-success"
+    }
 }
 
 AUTH_USER_MODEL = 'store.CustomUser'  

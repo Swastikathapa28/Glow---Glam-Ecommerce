@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product,Review,Category,Cart,CartItem
+from .models import Product,Review,Category,Cart,CartItem,Order,OrderItem
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser
 from django import forms
@@ -76,3 +76,11 @@ class CartItemAdmin(admin.ModelAdmin):
 class Category(admin.ModelAdmin):
     list_display = ('name','slug')
 
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('user', 'receipt_name', 'phone', 'address','status', 'created_at')
+    list_editable = ('status',) 
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ('order', 'product', 'quantity', 'price')
